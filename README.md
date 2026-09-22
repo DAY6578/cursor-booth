@@ -2,8 +2,6 @@
 
 arasuka BOOTHショップの社内システム。商品の実装はこのリポジトリで行い、役割は分けたままにする。
 
-ローカルフォルダは `D:\booth金稼ぎ`。GitHub上のリポジトリ名は `arasuka-tools`（private）。
-
 ## 指揮系統
 
 ```
