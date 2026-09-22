@@ -54,12 +54,12 @@ Discordのメニュー名は、更新で変わることがあります。
 
 1. `common/01-server-setup.md`
 2. `common/02-roles-and-permissions.md`
-3. `common/04-naming-rules.md`
-4. 選んだパックの `README.md` から番号順
-5. `common/03-moderation-first-response.md`
-6. `common/05-backup-and-handoff.md`
+3. `common/03-moderation-first-response.md`
+4. `common/04-naming-rules.md`
+5. `common/05-backup-and-handoff.md`
+6. 選んだパックの `README.md` から番号順
 
-公開前に、パック側のチェックリストと、共通のバックアップを通してください。
+公開前に、パック側の公開前チェックリストをすべて通してください。招待リンクはそのあとです。
 
 ## 利用範囲
 

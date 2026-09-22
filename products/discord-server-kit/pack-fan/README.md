@@ -2,13 +2,9 @@
 
 配信者、創作者、同人活動のファンが集まるサーバー用です。大会パックは読みません。
 
-先に次を読んでください。
+先に `../common/` を番号順（01〜05）に読んでください。
 
-1. `../common/01-server-setup.md`
-2. `../common/02-roles-and-permissions.md`
-3. `../common/04-naming-rules.md`
-
-そのあと、このフォルダを番号順に進めます。
+そのあと、このフォルダを番号順に進めます。最後に `07-prepublish-checklist.md` を通してから招待します。
 
 ## このパックで作るもの
 
@@ -27,6 +23,6 @@
 3. `03-text-rules.md`、`04-text-welcome.md`、`05-text-intro.md` の枠を、【　】だけ変えて貼る。
 4. `06-membership-checklist.md` で、参加確認のやり方をどちらかに決める。
 5. `07-prepublish-checklist.md` をすべて終える。
-6. 共通の `03-moderation-first-response.md` と `05-backup-and-handoff.md` を、運営の二人以上で読む。一人運営なら、所有者が両方を読む。
+6. 共通はすでに番号順で読んでいる前提です。迷ったら `03-moderation-first-response.md` と `05-backup-and-handoff.md` を運営の二人以上で読み直す。一人運営なら、所有者が両方を読む。
 
 招待リンクを配るのは、公開前チェックのあとです。

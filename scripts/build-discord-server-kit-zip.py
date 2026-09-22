@@ -35,6 +35,7 @@ REQUIRED = (
     "pack-event/06-text-absence.md",
     "pack-event/07-day-of-runbook.md",
     "pack-event/08-incident.md",
+    "pack-event/09-prepublish-checklist.md",
 )
 
 
