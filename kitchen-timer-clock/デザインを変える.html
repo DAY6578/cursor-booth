@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>キッチンタイマー時計</title>
+<style>
+:root {
+  --ink: #2c261f;
+  --paper: #f7f1e6;
+  --panel: #fffaf3;
+  --mute: #74685b;
+  --line: rgba(74, 52, 32, 0.16);
+  --terra: #c4553a;
+  --terra-deep: #9d3e28;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.7), transparent 46%),
+    linear-gradient(180deg, #f3e6d2 0%, #e7d3b8 100%);
+  color: var(--ink);
+  font-family: "Yu Gothic UI", Meiryo, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(340px, 0.95fr);
+  gap: 28px;
+  align-items: start;
+  padding: 28px 24px 128px;
+}
+
+.preview-col { min-width: 0; }
+
+h1 {
+  margin: 0;
+  font-family: "Yu Mincho", "YuMincho", serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.lead {
+  margin: 10px 0 0;
+  max-width: 40em;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 28px 0 10px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.note {
+  margin: 8px 0 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.stage {
+  position: relative;
+  min-height: 280px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  aspect-ratio: 720 / 800;
+  box-shadow: 0 16px 30px rgba(90, 52, 24, 0.08);
+}
+
+.checker {
+  position: absolute;
+  inset: 0;
+  background-color: #efe6d8;
+  background-image:
+    linear-gradient(45deg, #e2d5c2 25%, transparent 25%),
+    linear-gradient(-45deg, #e2d5c2 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e2d5c2 75%),
+    linear-gradient(-45deg, transparent 75%, #e2d5c2 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+}
+
+iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--panel);
+  padding: 8px 18px 18px;
+  box-shadow: 0 12px 24px rgba(90, 52, 24, 0.06);
+}
+
+.block { padding: 16px 0; border-top: 1px solid var(--line); }
+.panel .block:first-child { border-top: 0; }
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fffdf8;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.card[aria-pressed="true"] {
+  border-color: var(--terra);
+  box-shadow: inset 0 0 0 1px var(--terra);
+}
+
+.mini {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  position: relative;
+  box-shadow:
+    inset 0 -8px 10px rgba(0, 0, 0, 0.12),
+    inset 0 6px 8px rgba(255, 255, 255, 0.4);
+}
+
+.mini::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 28px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  background: #d5e0d6;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.mini-sepaku { background: linear-gradient(160deg, #fff, #d9d2c6); }
+.mini-hakka { background: linear-gradient(160deg, #dff8f2, #3f9e93); }
+.mini-hakka::after { background: #d7e6c4; }
+.mini-shurei { background: linear-gradient(160deg, #ff8f86, #9b241c); }
+.mini-shurei::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  width: 20px;
+  height: 12px;
+  transform: translateX(-50%);
+  border-radius: 10px 10px 3px 3px;
+  background: linear-gradient(180deg, #ffb0a8, #c4372e);
+}
+.mini-shurei::after { background: #f0ddc4; }
+.mini-kurumi {
+  background: repeating-linear-gradient(98deg, #6a4328 0 3px, #8b5a34 3px 7px, #5a381f 7px 10px);
+}
+.mini-kurumi::after { background: #2a1c12; }
+
+.card-name { font-size: 15px; font-weight: 700; }
+.card-note { font-size: 12px; color: var(--mute); }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.row p {
+  margin: 4px 0 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 28em;
+}
+
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+#picker {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.seg { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.seg button, .toggle {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fffdf8;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.seg button[aria-pressed="true"], .toggle[aria-pressed="true"] {
+  border-color: var(--terra);
+  background: var(--terra);
+  color: #fffaf6;
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+}
+
+.swatch[aria-pressed="true"] { border-color: var(--ink); }
+
+.swatch-theme {
+  background: conic-gradient(#243036, #1c4a38, #6e221c, #ffb35c, #243036);
+}
+
+.offset { display: none; margin-top: 8px; }
+.offset.is-open { display: block; }
+.offset label { display: block; margin-bottom: 6px; font-size: 14px; }
+
+.offset input {
+  width: 160px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffdf8;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.error { color: #a33b28; font-size: 13px; }
+
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  background: rgba(247, 241, 230, 0.96);
+}
+
+.save-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.save {
+  flex: 0 0 auto;
+  height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--terra);
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.save:hover { background: var(--terra-deep); }
+
+.obs {
+  margin: 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.arrow {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin: 0 0.35em;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: 0.05em;
+}
+
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--terra);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .wrap { grid-template-columns: 1fr; padding: 20px 16px 128px; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  h1 { font-size: 28px; }
+  .row { align-items: flex-start; flex-direction: column; }
+  .seg { justify-content: flex-start; }
+  .save-inner { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="preview-col">
+    <header>
+      <h1>キッチンタイマー時計</h1>
+      <p class="lead">キッチンタイマーの形をした透過時計です。テーマと色を決めて、OBS用のファイルを保存します。コードは開きません。</p>
+    </header>
+    <div class="preview-head">
+      <h2>プレビュー</h2>
+    </div>
+    <div class="stage">
+      <div class="checker"></div>
+      <iframe id="preview" title="時計のプレビュー"></iframe>
+    </div>
+    <p class="note">市松模様は透けているかの確認です。保存した時計には入りません。周りの数字はタイマーの目盛りで、時刻は中央の液晶です。</p>
+  </div>
+
+  <section class="panel">
+    <div class="block">
+      <h2>テーマ</h2>
+      <div class="cards" role="radiogroup" aria-label="テーマ">
+        <button type="button" class="card" data-theme="sepaku" role="radio">
+          <span class="mini mini-sepaku" aria-hidden="true"></span>
+          <span class="card-name">雪白</span>
+          <span class="card-note">白い樹脂</span>
+        </button>
+        <button type="button" class="card" data-theme="hakka" role="radio">
+          <span class="mini mini-hakka" aria-hidden="true"></span>
+          <span class="card-name">薄荷</span>
+          <span class="card-note">琺瑯の薄緑</span>
+        </button>
+        <button type="button" class="card" data-theme="shurei" role="radio">
+          <span class="mini mini-shurei" aria-hidden="true"></span>
+          <span class="card-name">朱鈴</span>
+          <span class="card-note">赤いベル付き</span>
+        </button>
+        <button type="button" class="card" data-theme="kurumi" role="radio">
+          <span class="mini mini-kurumi" aria-hidden="true"></span>
+          <span class="card-name">胡桃</span>
+          <span class="card-note">木目と真鍮</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="block">
+      <h2>液晶の色</h2>
+      <div class="colors">
+        <input id="picker" type="color" aria-label="液晶の色" value="#243036" />
+        <button type="button" class="swatch swatch-theme" data-accent="" aria-label="テーマの色"></button>
+        <button type="button" class="swatch" data-accent="#243036" style="background:#243036" aria-label="墨"></button>
+        <button type="button" class="swatch" data-accent="#1c4a38" style="background:#1c4a38" aria-label="若葉"></button>
+        <button type="button" class="swatch" data-accent="#6e221c" style="background:#6e221c" aria-label="朱"></button>
+        <button type="button" class="swatch" data-accent="#ffb35c" style="background:#ffb35c" aria-label="琥珀"></button>
+        <button type="button" class="swatch" data-accent="#243e66" style="background:#243e66" aria-label="紺"></button>
+      </div>
+      <p class="note">色を選ばなければ、テーマごとの液晶色になります。筐体は変わりません。</p>
+    </div>
+
+    <div class="row">
+      <div><h2>時刻の形</h2></div>
+      <div class="seg" role="radiogroup" aria-label="時刻の形">
+        <button type="button" data-hours="24" role="radio">24時間</button>
+        <button type="button" data-hours="12" role="radio">12時間</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div><h2>秒を表示</h2></div>
+      <button type="button" class="toggle" id="seconds" aria-pressed="true">オン</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <h2>日付を表示</h2>
+        <p>年月日と曜日です。</p>
+      </div>
+      <button type="button" class="toggle" id="date" aria-pressed="true">オン</button>
+    </div>
+
+    <div class="block">
+      <h2>時刻の基準</h2>
+      <div class="seg" role="radiogroup" aria-label="時刻の基準">
+        <button type="button" data-basis="local" role="radio">このパソコンの時刻</button>
+        <button type="button" data-basis="japan" role="radio">日本時間</button>
+        <button type="button" data-basis="other" role="radio">その他</button>
+      </div>
+      <div class="offset" id="offset-box">
+        <label for="offset">協定世界時からの時差（時間）</label>
+        <input id="offset" inputmode="decimal" autocomplete="off" value="9" />
+        <p class="error" id="offset-error" hidden>時差は -12 から 14 の数字にしてください。</p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="save-bar">
+  <div class="save-inner">
+    <button type="button" class="save" id="save">OBS用の時計をダウンロード</button>
+    <p class="obs">ダウンロードしたファイルを、OBS のブラウザソース<span class="arrow" aria-hidden="true"></span>ローカルファイルで開いてください。幅 720、高さ 800 くらいです。</p>
+  </div>
+</div>
+<script>
+const CLOCK_CSS = "/* キッチンタイマー時計\n   フォントは overlay/fonts に同梱（SIL Open Font License 1.1）。\n   ネットワークにはつながりません。\n   筐体はキッチンタイマー。中央の液晶は現在時刻です。 */\n\n@font-face {\n  font-family: \"Clock Nunito\";\n  src: url(\"data:font/woff2;base64,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\") format(\"woff2\");\n  font-weight: 800;\n  font-style: normal;\n  font-display: block;\n}\n\n@font-face {\n  font-family: \"Clock JP\";\n  src: url(\"data:font/woff2;base64,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\") format(\"woff2\");\n  font-weight: 500;\n  font-style: normal;\n  font-display: block;\n}\n\nhtml,\nbody {\n  height: 100%;\n  margin: 0;\n  background: transparent !important;\n  color-scheme: normal;\n  overflow: hidden;\n}\n\nbody {\n  user-select: none;\n  -webkit-font-smoothing: antialiased;\n}\n\n.clock {\n  box-sizing: border-box;\n  width: 100%;\n  height: 100%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  --ink: #243036;\n  --ink-rgb: 36, 48, 54;\n  --lcd-size: 1.72em;\n}\n\n.clock.has-seconds {\n  --lcd-size: 1.22em;\n}\n\n.clock.has-date {\n  --lcd-size: 1.52em;\n}\n\n.clock.has-seconds.has-date {\n  --lcd-size: 1.12em;\n}\n\n.clock.has-period.has-seconds.has-date {\n  --lcd-size: 1.02em;\n}\n\n.theme-sepaku {\n  --shell: linear-gradient(165deg, #ffffff 0%, #f6f1e6 42%, #d8d0c3 100%);\n  --face: radial-gradient(circle at 50% 42%, #fffdf8 0%, #f3eee4 72%, #e4ddd0 100%);\n  --lcd: linear-gradient(180deg, #b7c6bc 0%, #d5e0d6 42%, #c3d0c6 100%);\n  --bezel: #cfc6b6;\n  --tick: rgba(72, 64, 52, 0.42);\n  --tick-strong: rgba(48, 42, 34, 0.72);\n  --knob: linear-gradient(160deg, #fffaf2, #ddd4c6);\n  --mark: #c4473a;\n  --plate: #6d665c;\n  --screw-face: #d9d3c6;\n  --screw-edge: #8d877c;\n}\n\n.theme-hakka {\n  --shell: linear-gradient(165deg, #e7fff8 0%, #8fd9cc 38%, #3f9e93 100%);\n  --face: radial-gradient(circle at 50% 40%, #fbfff6 0%, #e7f0dc 70%, #d5e2c8 100%);\n  --lcd: linear-gradient(180deg, #c5d7b8 0%, #e3eed4 48%, #d0e0c0 100%);\n  --bezel: #f4f7ea;\n  --tick: rgba(24, 78, 62, 0.4);\n  --tick-strong: rgba(18, 72, 56, 0.72);\n  --knob: linear-gradient(160deg, #fffaf0, #e6dcc8);\n  --mark: #c4473a;\n  --plate: #1f5c48;\n  --screw-face: #e7f6f1;\n  --screw-edge: #2f7c6c;\n}\n\n.theme-shurei {\n  --shell: linear-gradient(165deg, #ff8f86 0%, #e24b42 40%, #9b241c 100%);\n  --face: radial-gradient(circle at 50% 40%, #fffaf2 0%, #f6ecdc 68%, #eadcc6 100%);\n  --lcd: linear-gradient(180deg, #e4d2b8 0%, #f3e6d0 46%, #e7d7be 100%);\n  --bezel: #f8efe2;\n  --tick: rgba(92, 28, 22, 0.38);\n  --tick-strong: rgba(92, 24, 18, 0.7);\n  --knob: linear-gradient(160deg, #fff8ee, #ead9c0);\n  --mark: #7a1e18;\n  --plate: #7a2c24;\n  --screw-face: #f0d2cc;\n  --screw-edge: #7a241c;\n}\n\n.theme-kurumi {\n  --shell: repeating-linear-gradient(\n    98deg,\n    #6a4328 0 3px,\n    #8b5a34 3px 7px,\n    #5a381f 7px 10px,\n    #7a4e2e 10px 16px,\n    #4e301c 16px 18px\n  );\n  --face: radial-gradient(circle at 50% 42%, #4a3424 0%, #2c1e14 78%);\n  --lcd: linear-gradient(180deg, #140e0a 0%, #2a1c12 40%, #1a120c 100%);\n  --bezel: #e0c27a;\n  --tick: rgba(224, 194, 122, 0.55);\n  --tick-strong: rgba(240, 214, 150, 0.92);\n  --knob: linear-gradient(160deg, #f0d7a0, #b8893e 55%, #8a6428);\n  --mark: #4a2c12;\n  --plate: #f0d7a4;\n  --screw-face: #e6c98a;\n  --screw-edge: #6d4a1e;\n}\n\n.appliance {\n  width: 15.8em;\n  height: 15.8em;\n  font-size: calc(min(88vmin, 620px) / 15.8);\n  display: grid;\n  place-items: center;\n  filter: drop-shadow(0 0.42em 0.28em rgba(0, 0, 0, 0.22));\n}\n\n.body {\n  position: relative;\n  width: 14em;\n  height: 14em;\n  border-radius: 50%;\n  background: var(--shell);\n  box-shadow:\n    inset 0 0.35em 0.45em rgba(255, 255, 255, 0.28),\n    inset 0 -0.7em 0.9em rgba(0, 0, 0, 0.16),\n    0 0 0 0.14em rgba(0, 0, 0, 0.18);\n}\n\n.theme-kurumi .body {\n  box-shadow:\n    inset 0 0.45em 0.7em rgba(255, 220, 170, 0.16),\n    inset 0 -0.8em 1em rgba(0, 0, 0, 0.28),\n    0 0 0 0.16em #c6a15a;\n}\n\n.sheen {\n  position: absolute;\n  inset: 0;\n  border-radius: 50%;\n  background: linear-gradient(205deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%);\n  pointer-events: none;\n  z-index: 4;\n  -webkit-mask: radial-gradient(circle, transparent 0 60%, #000 64% 100%);\n  mask: radial-gradient(circle, transparent 0 60%, #000 64% 100%);\n}\n\n.theme-kurumi .sheen {\n  opacity: 0.28;\n}\n\n.ticks {\n  position: absolute;\n  inset: 8%;\n  border-radius: 50%;\n  background: repeating-conic-gradient(\n    from -0.35deg,\n    var(--tick) 0deg 0.7deg,\n    transparent 0.7deg 6deg\n  );\n  -webkit-mask: radial-gradient(circle, transparent 0 79%, #000 80% 86%, transparent 87%);\n  mask: radial-gradient(circle, transparent 0 79%, #000 80% 86%, transparent 87%);\n  z-index: 1;\n  pointer-events: none;\n}\n\n.ticks-major {\n  inset: 6.5%;\n  background: repeating-conic-gradient(\n    from -0.55deg,\n    var(--tick-strong) 0deg 1.1deg,\n    transparent 1.1deg 30deg\n  );\n  -webkit-mask: radial-gradient(circle, transparent 0 74%, #000 75% 90%, transparent 91%);\n  mask: radial-gradient(circle, transparent 0 74%, #000 75% 90%, transparent 91%);\n}\n\n.dial-nums {\n  position: absolute;\n  inset: 0;\n  z-index: 2;\n  pointer-events: none;\n}\n\n.mark {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  width: 0;\n  height: 0;\n  font-size: 1em;\n  transform: rotate(var(--a)) translateY(-5.72em);\n}\n\n.mark span {\n  position: absolute;\n  left: 0;\n  top: 0;\n  transform: translate(-50%, -50%) rotate(calc(var(--a) * -1));\n  font-family: \"Clock Nunito\", sans-serif;\n  font-weight: 800;\n  font-size: 0.34em;\n  letter-spacing: -0.03em;\n  color: var(--plate);\n  line-height: 1;\n}\n\n.screw {\n  position: absolute;\n  z-index: 5;\n  width: 0.46em;\n  height: 0.46em;\n  border-radius: 50%;\n  background: radial-gradient(circle at 35% 32%, #fff, var(--screw-face) 42%, var(--screw-edge));\n  box-shadow:\n    inset 0 0 0 0.04em rgba(0, 0, 0, 0.25),\n    0 0.04em 0.06em rgba(0, 0, 0, 0.18);\n}\n\n.screw::after {\n  content: \"\";\n  position: absolute;\n  left: 18%;\n  right: 18%;\n  top: 46%;\n  height: 0.045em;\n  background: rgba(40, 28, 16, 0.55);\n  transform: rotate(-18deg);\n}\n\n.screw-l {\n  left: 19%;\n  top: 20%;\n}\n\n.screw-r {\n  right: 19%;\n  top: 20%;\n}\n\n.bell {\n  position: absolute;\n  left: 50%;\n  top: 0.15em;\n  width: 3.5em;\n  height: 2.15em;\n  transform: translateX(-50%);\n  z-index: 6;\n  opacity: 0;\n  pointer-events: none;\n}\n\n.theme-shurei .bell {\n  opacity: 1;\n}\n\n.theme-shurei .mark-zero {\n  visibility: hidden;\n}\n\n.bell-dome {\n  display: block;\n  width: 100%;\n  height: 1.72em;\n  border-radius: 1.7em 1.7em 0.35em 0.35em;\n  background: linear-gradient(180deg, #ffb0a8 0%, #e24b42 48%, #8f2018 100%);\n  box-shadow:\n    inset 0 0.28em 0.35em rgba(255, 255, 255, 0.35),\n    0 0.18em 0 #7a1c16;\n}\n\n.bell-dome::before {\n  content: \"\";\n  position: absolute;\n  left: 50%;\n  bottom: 0.28em;\n  width: 0.16em;\n  height: 0.42em;\n  transform: translateX(-50%);\n  border-radius: 0.1em;\n  background: #5c1814;\n}\n\n.bell-cap {\n  position: absolute;\n  left: 50%;\n  top: -0.22em;\n  width: 0.62em;\n  height: 0.38em;\n  transform: translateX(-50%);\n  border-radius: 0.16em 0.16em 0.08em 0.08em;\n  background: linear-gradient(180deg, #f8e7b0, #c8963e);\n  box-shadow: 0 0.04em 0 rgba(0, 0, 0, 0.2);\n}\n\n.face {\n  position: absolute;\n  left: 50%;\n  top: 48%;\n  z-index: 3;\n  width: 8.35em;\n  height: 8.35em;\n  transform: translate(-50%, -50%);\n  border-radius: 50%;\n  background: var(--face);\n  box-shadow:\n    0 0 0 0.12em var(--bezel),\n    inset 0 0.08em 0 rgba(255, 255, 255, 0.55),\n    inset 0 -0.35em 0.5em rgba(0, 0, 0, 0.08);\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  gap: 0.22em;\n  padding: 0.7em 0.45em 0.55em;\n  box-sizing: border-box;\n}\n\n.brand,\n.period,\n.date {\n  margin: 0;\n  line-height: 1;\n}\n\n.brand {\n  font-family: \"Clock Nunito\", sans-serif;\n  font-weight: 800;\n  font-size: 0.4em;\n  letter-spacing: 0.28em;\n  text-indent: 0.28em;\n  color: var(--plate);\n}\n\n.period,\n.date {\n  font-family: \"Clock JP\", sans-serif;\n  font-weight: 500;\n  color: var(--plate);\n  letter-spacing: 0.08em;\n  white-space: nowrap;\n}\n\n.period {\n  font-size: 0.38em;\n}\n\n.date {\n  font-size: 0.32em;\n}\n\n.period[hidden],\n.date[hidden] {\n  display: none !important;\n}\n\n.weekday {\n  color: var(--ink);\n}\n\n.lcd {\n  position: relative;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: var(--ink);\n  background: var(--lcd);\n  border-radius: 0.28em;\n  padding: 0.2em 0.32em 0.16em;\n  box-shadow:\n    inset 0 0.12em 0.18em rgba(0, 0, 0, 0.28),\n    inset 0 -0.04em 0 rgba(255, 255, 255, 0.28);\n  font-size: var(--lcd-size);\n  line-height: 1;\n  overflow: hidden;\n}\n\n.lcd::after {\n  content: \"\";\n  position: absolute;\n  left: 0;\n  right: 0;\n  top: 0;\n  height: 46%;\n  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));\n  pointer-events: none;\n}\n\n.digit {\n  position: relative;\n  display: inline-block;\n  width: 0.62em;\n  height: 1.14em;\n  margin: 0 0.035em;\n  flex: 0 0 auto;\n}\n\n.seg {\n  position: absolute;\n  background: currentColor;\n  opacity: 0.16;\n  transition: opacity 0.16s linear;\n}\n\n.digit.on-a .seg-a,\n.digit.on-b .seg-b,\n.digit.on-c .seg-c,\n.digit.on-d .seg-d,\n.digit.on-e .seg-e,\n.digit.on-f .seg-f,\n.digit.on-g .seg-g {\n  opacity: 1;\n}\n\n.seg-a,\n.seg-g,\n.seg-d {\n  height: 0.11em;\n  left: 0.13em;\n  right: 0.13em;\n  clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);\n}\n\n.seg-a {\n  top: 0.02em;\n}\n\n.seg-g {\n  top: 50%;\n  margin-top: -0.055em;\n}\n\n.seg-d {\n  bottom: 0.02em;\n}\n\n.seg-b,\n.seg-c,\n.seg-e,\n.seg-f {\n  width: 0.11em;\n  clip-path: polygon(0 10%, 50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%);\n}\n\n.seg-f,\n.seg-b {\n  top: 0.08em;\n  height: 0.46em;\n}\n\n.seg-e,\n.seg-c {\n  bottom: 0.08em;\n  height: 0.46em;\n}\n\n.seg-f,\n.seg-e {\n  left: 0.02em;\n}\n\n.seg-b,\n.seg-c {\n  right: 0.02em;\n}\n\n.colon {\n  display: inline-flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  gap: 0.26em;\n  width: 0.28em;\n  height: 1.14em;\n  flex: 0 0 auto;\n  animation: lcd-blink 1s steps(1, end) infinite;\n}\n\n.colon i {\n  display: block;\n  width: 0.13em;\n  height: 0.13em;\n  border-radius: 0.04em;\n  background: currentColor;\n}\n\n.knob {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 6;\n  width: 1.7em;\n  height: 1.7em;\n  border-radius: 50%;\n  transform: translate(-50%, -50%) translateY(7.05em);\n  background: var(--knob);\n  box-shadow:\n    inset 0 0.12em 0.14em rgba(255, 255, 255, 0.65),\n    inset 0 -0.16em 0.2em rgba(0, 0, 0, 0.22),\n    0 0.12em 0.16em rgba(0, 0, 0, 0.22),\n    0 0 0 0.06em rgba(0, 0, 0, 0.18);\n}\n\n.knob-mark {\n  position: absolute;\n  left: 50%;\n  top: 0.22em;\n  width: 0.16em;\n  height: 0.42em;\n  transform: translateX(-50%);\n  border-radius: 0.08em;\n  background: var(--mark);\n}\n\n@keyframes lcd-blink {\n  0%,\n  49% {\n    opacity: 1;\n  }\n  50%,\n  100% {\n    opacity: 0.28;\n  }\n}\n\n.sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n  border: 0;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .colon {\n    animation: none !important;\n    opacity: 1;\n  }\n\n  .seg {\n    transition: none !important;\n  }\n}\n";
+const CLOCK_JS = "/* ============================================================\n   キッチンタイマー時計 — 初期設定\n\n   ローカルファイルとして OBS に入れるときは、この CONFIG を編集します。\n   URL にクエリがあるときは、クエリがここより優先されます。\n\n   theme    sepaku | hakka | shurei | kurumi\n            雪白 / 薄荷 / 朱鈴 / 胡桃\n   hours    12 | 24\n   seconds  true で秒を表示 / false で隠す\n   date     true で日付と曜日 / false で隠す\n   accent   \"\" または \"#243036\"。空ならテーマの液晶色\n   offset   null ならこの PC のローカル時刻。数値は UTC からの時間（日本は 9）\n\n   クエリの例:\n   ?theme=shurei&hours=24&seconds=1&date=1&accent=6e221c&offset=9\n   ============================================================ */\nconst CONFIG = __CONFIG__;\n\n/* ここから下は、通常はいじらなくて大丈夫です。 */\n\nconst THEME_IDS = [\"sepaku\", \"hakka\", \"shurei\", \"kurumi\"];\nconst THEME_ACCENTS = {\n  sepaku: \"#243036\",\n  hakka: \"#1c4a38\",\n  shurei: \"#6e221c\",\n  kurumi: \"#ffb35c\",\n};\nconst WEEKDAYS = [\"日\", \"月\", \"火\", \"水\", \"木\", \"金\", \"土\"];\nconst SEGMENTS = {\n  0: \"abcdef\",\n  1: \"bc\",\n  2: \"abdeg\",\n  3: \"abcdg\",\n  4: \"bcfg\",\n  5: \"acdfg\",\n  6: \"acdefg\",\n  7: \"abc\",\n  8: \"abcdefg\",\n  9: \"abcdfg\",\n};\n\nconst clock = document.getElementById(\"clock\");\nconst periodEl = document.getElementById(\"period\");\nconst timeEl = document.getElementById(\"time\");\nconst dateEl = document.getElementById(\"date\");\nconst spokenEl = document.getElementById(\"spoken\");\n\nlet state = normalize(readQuery(location.search), CONFIG);\nlet lastDateKey = \"\";\nlet lastSpokenKey = \"\";\n\nfunction readQuery(search) {\n  const params = new URLSearchParams(search);\n  const input = {};\n  if (params.has(\"theme\")) input.theme = params.get(\"theme\");\n  if (params.has(\"hours\")) input.hours = params.get(\"hours\");\n  if (params.has(\"seconds\")) input.seconds = params.get(\"seconds\");\n  if (params.has(\"date\")) input.date = params.get(\"date\");\n  if (params.has(\"accent\")) input.accent = params.get(\"accent\");\n  if (params.has(\"offset\")) input.offset = params.get(\"offset\");\n  return input;\n}\n\nfunction themeFrom(value, fallback) {\n  const name = String(value || \"\").toLowerCase();\n  if (THEME_IDS.indexOf(name) !== -1) return name;\n  if (THEME_IDS.indexOf(fallback) !== -1) return fallback;\n  return \"sepaku\";\n}\n\nfunction hoursFrom(value, fallback) {\n  const hours = Number(value);\n  if (hours === 12 || hours === 24) return hours;\n  return fallback === 12 ? 12 : 24;\n}\n\nfunction boolFrom(value, fallback) {\n  if (typeof value === \"boolean\") return value;\n  if (value == null || value === \"\") return fallback;\n  const text = String(value).toLowerCase();\n  if (text === \"1\" || text === \"true\" || text === \"yes\" || text === \"on\") return true;\n  if (text === \"0\" || text === \"false\" || text === \"no\" || text === \"off\") return false;\n  return fallback;\n}\n\nfunction accentFrom(value) {\n  if (value == null || String(value).trim() === \"\") return \"\";\n  let hex = String(value).trim();\n  if (hex.charAt(0) === \"#\") hex = hex.slice(1);\n  if (/^[0-9a-fA-F]{3}$/.test(hex)) {\n    hex = hex\n      .split(\"\")\n      .map(function (char) {\n        return char + char;\n      })\n      .join(\"\");\n  }\n  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return \"\";\n  return \"#\" + hex.toLowerCase();\n}\n\nfunction offsetFrom(value, fallback) {\n  if (value === undefined) return fallback;\n  if (value === null || value === \"\") return null;\n  const offset = typeof value === \"number\" ? value : Number(String(value).trim());\n  if (!Number.isFinite(offset) || offset < -12 || offset > 14) return fallback;\n  return Math.round(offset * 100) / 100;\n}\n\nfunction normalize(input, fallback) {\n  return {\n    theme: themeFrom(input.theme, fallback.theme),\n    hours: hoursFrom(input.hours, fallback.hours),\n    seconds: boolFrom(input.seconds, fallback.seconds),\n    date: boolFrom(input.date, fallback.date),\n    accent: Object.prototype.hasOwnProperty.call(input, \"accent\")\n      ? accentFrom(input.accent)\n      : fallback.accent || \"\",\n    offset: offsetFrom(input.offset, fallback.offset),\n  };\n}\n\nfunction hexToRgb(hex) {\n  const value = parseInt(hex.slice(1), 16);\n  return {\n    r: (value >> 16) & 255,\n    g: (value >> 8) & 255,\n    b: value & 255,\n  };\n}\n\nfunction clockDate(offset) {\n  const now = new Date();\n  if (offset === null || offset === undefined || Number.isNaN(offset)) return now;\n  const utc = now.getTime() + now.getTimezoneOffset() * 60000;\n  return new Date(utc + offset * 60 * 60 * 1000);\n}\n\nfunction partsOf(date, current) {\n  let hours = date.getHours();\n  let period = \"\";\n  if (current.hours === 12) {\n    period = hours < 12 ? \"午前\" : \"午後\";\n    hours = hours % 12;\n    if (hours === 0) hours = 12;\n  }\n  const hh = String(hours).padStart(2, \"0\");\n  const mm = String(date.getMinutes()).padStart(2, \"0\");\n  const ss = String(date.getSeconds()).padStart(2, \"0\");\n  return {\n    period: period,\n    core: current.seconds ? hh + \":\" + mm + \":\" + ss : hh + \":\" + mm,\n  };\n}\n\nfunction paintDigit(digit, char) {\n  const on = SEGMENTS[char] || \"\";\n  \"abcdefg\".split(\"\").forEach(function (name) {\n    digit.classList.toggle(\"on-\" + name, on.indexOf(name) !== -1);\n  });\n  digit.dataset.value = char;\n}\n\nfunction createDigit(char) {\n  const digit = document.createElement(\"span\");\n  digit.className = \"digit\";\n  \"abcdefg\".split(\"\").forEach(function (name) {\n    const seg = document.createElement(\"span\");\n    seg.className = \"seg seg-\" + name;\n    digit.appendChild(seg);\n  });\n  paintDigit(digit, char);\n  return digit;\n}\n\nfunction createColon() {\n  const colon = document.createElement(\"span\");\n  colon.className = \"colon\";\n  colon.dataset.kind = \"colon\";\n  const upper = document.createElement(\"i\");\n  const lower = document.createElement(\"i\");\n  colon.appendChild(upper);\n  colon.appendChild(lower);\n  return colon;\n}\n\nfunction syncTime(text) {\n  const chars = text.split(\"\");\n  const sameShape =\n    timeEl.childElementCount === chars.length &&\n    chars.every(function (char, index) {\n      const child = timeEl.children[index];\n      if (char === \":\") return child.dataset.kind === \"colon\";\n      return child.classList.contains(\"digit\");\n    });\n\n  if (!sameShape) {\n    const fragment = document.createDocumentFragment();\n    chars.forEach(function (char) {\n      fragment.appendChild(char === \":\" ? createColon() : createDigit(char));\n    });\n    timeEl.replaceChildren(fragment);\n    return;\n  }\n\n  chars.forEach(function (char, index) {\n    if (char === \":\") return;\n    const digit = timeEl.children[index];\n    if (digit.dataset.value !== char) paintDigit(digit, char);\n  });\n}\n\nfunction paintDate(date) {\n  const weekday = WEEKDAYS[date.getDay()];\n  const mark = document.createElement(\"span\");\n  mark.className = \"weekday\";\n  mark.textContent = weekday;\n  dateEl.replaceChildren(\n    document.createTextNode(\n      date.getFullYear() + \"年\" + (date.getMonth() + 1) + \"月\" + date.getDate() + \"日（\",\n    ),\n    mark,\n    document.createTextNode(\"）\"),\n  );\n}\n\nfunction spokenLabel(date, current, parts) {\n  const weekday = WEEKDAYS[date.getDay()];\n  let hours = date.getHours();\n  let prefix = \"\";\n  if (current.hours === 12) {\n    prefix = parts.period;\n    hours = hours % 12 || 12;\n  }\n  const timeText = prefix + hours + \"時\" + date.getMinutes() + \"分\";\n  if (!current.date) return timeText;\n  return (\n    date.getFullYear() +\n    \"年\" +\n    (date.getMonth() + 1) +\n    \"月\" +\n    date.getDate() +\n    \"日 \" +\n    weekday +\n    \"曜日 \" +\n    timeText\n  );\n}\n\nfunction render() {\n  const date = clockDate(state.offset);\n  const accent = state.accent || THEME_ACCENTS[state.theme];\n  const rgb = hexToRgb(accent);\n  const classNames = [\"clock\", \"theme-\" + state.theme];\n  if (state.date) classNames.push(\"has-date\");\n  if (state.hours === 12) classNames.push(\"has-period\");\n  if (state.seconds) classNames.push(\"has-seconds\");\n  clock.className = classNames.join(\" \");\n  clock.style.setProperty(\"--ink\", accent);\n  clock.style.setProperty(\"--ink-rgb\", rgb.r + \", \" + rgb.g + \", \" + rgb.b);\n\n  const parts = partsOf(date, state);\n  periodEl.hidden = state.hours !== 12;\n  if (state.hours === 12 && periodEl.textContent !== parts.period) {\n    periodEl.textContent = parts.period;\n  }\n\n  dateEl.hidden = !state.date;\n  if (state.date) {\n    const dateKey = date.getFullYear() + \"-\" + date.getMonth() + \"-\" + date.getDate();\n    if (dateKey !== lastDateKey) {\n      lastDateKey = dateKey;\n      paintDate(date);\n    }\n  }\n\n  syncTime(parts.core);\n\n  const spokenKey = [\n    date.getFullYear(),\n    date.getMonth(),\n    date.getDate(),\n    date.getHours(),\n    date.getMinutes(),\n    state.hours,\n    state.date ? \"1\" : \"0\",\n  ].join(\"-\");\n  if (spokenKey !== lastSpokenKey) {\n    lastSpokenKey = spokenKey;\n    spokenEl.textContent = spokenLabel(date, state, parts);\n  }\n}\n\nfunction tick() {\n  render();\n  schedule();\n}\n\nfunction schedule() {\n  const delay = 1000 - (Date.now() % 1000) + 30;\n  window.setTimeout(tick, delay);\n}\n\nwindow.addEventListener(\"message\", function (event) {\n  if (event.origin !== location.origin) return;\n  const data = event.data;\n  if (!data || data.type !== \"kitchen-timer-clock\") return;\n  state = normalize(\n    {\n      theme: data.theme,\n      hours: data.hours,\n      seconds: data.seconds,\n      date: data.date,\n      accent: data.accent,\n      offset: data.offset,\n    },\n    state,\n  );\n  render();\n});\n\nrender();\nschedule();\n";
+const CLOCK_BODY = "<!-- 見た目の初期値は clock.js 先頭の CONFIG。URL のクエリがあればそちらが優先されます。 -->\n    <main id=\"clock\" class=\"clock theme-sepaku has-seconds has-date\" aria-hidden=\"true\">\n      <div class=\"appliance\">\n        <div class=\"body\">\n          <div class=\"bell\" aria-hidden=\"true\">\n            <span class=\"bell-cap\"></span>\n            <span class=\"bell-dome\"></span>\n          </div>\n          <div class=\"sheen\" aria-hidden=\"true\"></div>\n          <div class=\"ticks\" aria-hidden=\"true\"></div>\n          <div class=\"ticks ticks-major\" aria-hidden=\"true\"></div>\n          <div class=\"dial-nums\" aria-hidden=\"true\">\n            <span class=\"mark mark-zero\" style=\"--a: 0deg\"><span>0</span></span>\n            <span class=\"mark\" style=\"--a: 30deg\"><span>5</span></span>\n            <span class=\"mark\" style=\"--a: 60deg\"><span>10</span></span>\n            <span class=\"mark\" style=\"--a: 90deg\"><span>15</span></span>\n            <span class=\"mark\" style=\"--a: 120deg\"><span>20</span></span>\n            <span class=\"mark\" style=\"--a: 150deg\"><span>25</span></span>\n            <span class=\"mark\" style=\"--a: 180deg\"><span>30</span></span>\n            <span class=\"mark\" style=\"--a: 210deg\"><span>35</span></span>\n            <span class=\"mark\" style=\"--a: 240deg\"><span>40</span></span>\n            <span class=\"mark\" style=\"--a: 270deg\"><span>45</span></span>\n            <span class=\"mark\" style=\"--a: 300deg\"><span>50</span></span>\n            <span class=\"mark\" style=\"--a: 330deg\"><span>55</span></span>\n          </div>\n          <span class=\"screw screw-l\" aria-hidden=\"true\"></span>\n          <span class=\"screw screw-r\" aria-hidden=\"true\"></span>\n          <div class=\"face\">\n            <p class=\"brand\">KITCHEN</p>\n            <p class=\"period\" id=\"period\" hidden></p>\n            <div class=\"lcd\" id=\"time\"></div>\n            <p class=\"date\" id=\"date\" hidden></p>\n          </div>\n          <div class=\"knob\" aria-hidden=\"true\"><span class=\"knob-mark\"></span></div>\n        </div>\n      </div>\n    </main>\n    <p class=\"sr-only\" id=\"spoken\" aria-live=\"polite\"></p>";
+(function () {
+  var THEMES = ["sepaku", "hakka", "shurei", "kurumi"];
+  var THEME_ACCENTS = {
+    sepaku: "#243036",
+    hakka: "#1c4a38",
+    shurei: "#6e221c",
+    kurumi: "#ffb35c",
+  };
+  var STORAGE_KEY = "kitchen-timer-clock-design";
+
+  var state = {
+    theme: "sepaku",
+    hours: 24,
+    seconds: true,
+    date: true,
+    accent: "",
+    basis: "local",
+    offsetText: "9",
+  };
+  var lastPreviewKey = "";
+  var previewTimer = 0;
+
+  function $(id) { return document.getElementById(id); }
+
+  function readStore() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (THEMES.indexOf(saved.theme) !== -1) state.theme = saved.theme;
+      if (saved.hours === 12 || saved.hours === 24) state.hours = saved.hours;
+      if (typeof saved.seconds === "boolean") state.seconds = saved.seconds;
+      if (typeof saved.date === "boolean") state.date = saved.date;
+      if (typeof saved.accent === "string" && (/^#[0-9a-fA-F]{6}$/.test(saved.accent) || saved.accent === "")) {
+        state.accent = saved.accent.toLowerCase();
+      }
+      if (saved.basis === "local" || saved.basis === "japan" || saved.basis === "other") state.basis = saved.basis;
+      if (typeof saved.offsetText === "string") state.offsetText = saved.offsetText;
+    } catch (error) {}
+  }
+
+  function writeStore() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) {}
+  }
+
+  function parseOffset(text) {
+    var trimmed = String(text || "").trim().replace(/−/g, "-");
+    if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
+    var value = Number(trimmed);
+    if (!isFinite(value) || value < -12 || value > 14) return null;
+    return Math.round(value * 100) / 100;
+  }
+
+  function toConfig() {
+    var offset = null;
+    if (state.basis === "japan") offset = 9;
+    if (state.basis === "other") {
+      var parsed = parseOffset(state.offsetText);
+      if (parsed === null) return null;
+      offset = parsed;
+    }
+    return {
+      theme: state.theme,
+      hours: state.hours,
+      seconds: state.seconds,
+      date: state.date,
+      accent: state.accent,
+      offset: offset,
+    };
+  }
+
+  function buildClockHtml(config) {
+    var js = CLOCK_JS.replace("__CONFIG__", JSON.stringify(config)).replace(/<\//g, "<\\/");
+    return (
+      "<!doctype html><html lang=\"ja\"><head><meta charset=\"utf-8\">" +
+      "<title>キッチンタイマー時計</title><style>" +
+      "html,body{background:transparent!important;margin:0}" +
+      CLOCK_CSS +
+      "</style></head><body>" +
+      CLOCK_BODY +
+      "<script>" + js + "<\/script></body></html>"
+    );
+  }
+
+  function paint() {
+    var cards = document.querySelectorAll("[data-theme]");
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].setAttribute("aria-pressed", cards[i].getAttribute("data-theme") === state.theme ? "true" : "false");
+    }
+    var hours = document.querySelectorAll("[data-hours]");
+    for (var h = 0; h < hours.length; h++) {
+      hours[h].setAttribute("aria-pressed", Number(hours[h].getAttribute("data-hours")) === state.hours ? "true" : "false");
+    }
+    var basis = document.querySelectorAll("[data-basis]");
+    for (var b = 0; b < basis.length; b++) {
+      basis[b].setAttribute("aria-pressed", basis[b].getAttribute("data-basis") === state.basis ? "true" : "false");
+    }
+    $("seconds").setAttribute("aria-pressed", state.seconds ? "true" : "false");
+    $("seconds").textContent = state.seconds ? "オン" : "オフ";
+    $("date").setAttribute("aria-pressed", state.date ? "true" : "false");
+    $("date").textContent = state.date ? "オン" : "オフ";
+    $("picker").value = state.accent || THEME_ACCENTS[state.theme];
+    var swatches = document.querySelectorAll("[data-accent]");
+    for (var s = 0; s < swatches.length; s++) {
+      swatches[s].setAttribute("aria-pressed", swatches[s].getAttribute("data-accent").toLowerCase() === state.accent ? "true" : "false");
+    }
+    $("offset-box").className = state.basis === "other" ? "offset is-open" : "offset";
+    if (document.activeElement !== $("offset")) $("offset").value = state.offsetText;
+    var invalid = state.basis === "other" && parseOffset(state.offsetText) === null;
+    $("offset-error").hidden = !invalid;
+    $("offset").setAttribute("aria-invalid", invalid ? "true" : "false");
+  }
+
+  function schedulePreview() {
+    window.clearTimeout(previewTimer);
+    previewTimer = window.setTimeout(renderPreview, 80);
+  }
+
+  function renderPreview() {
+    var config = toConfig();
+    if (!config) return;
+    var key = JSON.stringify(config);
+    if (key === lastPreviewKey) return;
+    lastPreviewKey = key;
+    $("preview").srcdoc = buildClockHtml(config);
+  }
+
+  function download() {
+    var config = toConfig();
+    if (!config) {
+      $("offset").focus();
+      return;
+    }
+    var html = buildClockHtml(config);
+    var blob = new Blob([html], { type: "text/html" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "キッチンタイマー時計.html";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    var button = $("save");
+    button.textContent = "保存しました";
+    window.setTimeout(function () { button.textContent = "OBS用の時計をダウンロード"; }, 1800);
+  }
+
+  readStore();
+  paint();
+  renderPreview();
+
+  document.querySelectorAll("[data-theme]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.theme = button.getAttribute("data-theme");
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  document.querySelectorAll("[data-hours]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.hours = Number(button.getAttribute("data-hours"));
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  document.querySelectorAll("[data-basis]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.basis = button.getAttribute("data-basis");
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  document.querySelectorAll("[data-accent]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.accent = button.getAttribute("data-accent").toLowerCase();
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  $("picker").addEventListener("input", function (event) {
+    state.accent = event.target.value.toLowerCase();
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("seconds").addEventListener("click", function () {
+    state.seconds = !state.seconds;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("date").addEventListener("click", function () {
+    state.date = !state.date;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("offset").addEventListener("input", function (event) {
+    state.offsetText = event.target.value;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("save").addEventListener("click", download);
+})();
+</script>
+</body>
+</html>

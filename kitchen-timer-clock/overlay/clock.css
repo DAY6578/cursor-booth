@@ -1,0 +1,565 @@
+/* キッチンタイマー時計
+   フォントは overlay/fonts に同梱（SIL Open Font License 1.1）。
+   ネットワークにはつながりません。
+   筐体はキッチンタイマー。中央の液晶は現在時刻です。 */
+
+@font-face {
+  font-family: "Clock Nunito";
+  src: url("fonts/nunito-800.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Clock JP";
+  src: url("fonts/mplus-rounded-500-jp.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: transparent !important;
+  color-scheme: normal;
+  overflow: hidden;
+}
+
+body {
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.clock {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --ink: #243036;
+  --ink-rgb: 36, 48, 54;
+  --lcd-size: 1.72em;
+}
+
+.clock.has-seconds {
+  --lcd-size: 1.22em;
+}
+
+.clock.has-date {
+  --lcd-size: 1.52em;
+}
+
+.clock.has-seconds.has-date {
+  --lcd-size: 1.12em;
+}
+
+.clock.has-period.has-seconds.has-date {
+  --lcd-size: 1.02em;
+}
+
+.theme-sepaku {
+  --shell: linear-gradient(165deg, #ffffff 0%, #f6f1e6 42%, #d8d0c3 100%);
+  --face: radial-gradient(circle at 50% 42%, #fffdf8 0%, #f3eee4 72%, #e4ddd0 100%);
+  --lcd: linear-gradient(180deg, #b7c6bc 0%, #d5e0d6 42%, #c3d0c6 100%);
+  --bezel: #cfc6b6;
+  --tick: rgba(72, 64, 52, 0.42);
+  --tick-strong: rgba(48, 42, 34, 0.72);
+  --knob: linear-gradient(160deg, #fffaf2, #ddd4c6);
+  --mark: #c4473a;
+  --plate: #6d665c;
+  --screw-face: #d9d3c6;
+  --screw-edge: #8d877c;
+}
+
+.theme-hakka {
+  --shell: linear-gradient(165deg, #e7fff8 0%, #8fd9cc 38%, #3f9e93 100%);
+  --face: radial-gradient(circle at 50% 40%, #fbfff6 0%, #e7f0dc 70%, #d5e2c8 100%);
+  --lcd: linear-gradient(180deg, #c5d7b8 0%, #e3eed4 48%, #d0e0c0 100%);
+  --bezel: #f4f7ea;
+  --tick: rgba(24, 78, 62, 0.4);
+  --tick-strong: rgba(18, 72, 56, 0.72);
+  --knob: linear-gradient(160deg, #fffaf0, #e6dcc8);
+  --mark: #c4473a;
+  --plate: #1f5c48;
+  --screw-face: #e7f6f1;
+  --screw-edge: #2f7c6c;
+}
+
+.theme-shurei {
+  --shell: linear-gradient(165deg, #ff8f86 0%, #e24b42 40%, #9b241c 100%);
+  --face: radial-gradient(circle at 50% 40%, #fffaf2 0%, #f6ecdc 68%, #eadcc6 100%);
+  --lcd: linear-gradient(180deg, #e4d2b8 0%, #f3e6d0 46%, #e7d7be 100%);
+  --bezel: #f8efe2;
+  --tick: rgba(92, 28, 22, 0.38);
+  --tick-strong: rgba(92, 24, 18, 0.7);
+  --knob: linear-gradient(160deg, #fff8ee, #ead9c0);
+  --mark: #7a1e18;
+  --plate: #7a2c24;
+  --screw-face: #f0d2cc;
+  --screw-edge: #7a241c;
+}
+
+.theme-kurumi {
+  --shell: repeating-linear-gradient(
+    98deg,
+    #6a4328 0 3px,
+    #8b5a34 3px 7px,
+    #5a381f 7px 10px,
+    #7a4e2e 10px 16px,
+    #4e301c 16px 18px
+  );
+  --face: radial-gradient(circle at 50% 42%, #4a3424 0%, #2c1e14 78%);
+  --lcd: linear-gradient(180deg, #140e0a 0%, #2a1c12 40%, #1a120c 100%);
+  --bezel: #e0c27a;
+  --tick: rgba(224, 194, 122, 0.55);
+  --tick-strong: rgba(240, 214, 150, 0.92);
+  --knob: linear-gradient(160deg, #f0d7a0, #b8893e 55%, #8a6428);
+  --mark: #4a2c12;
+  --plate: #f0d7a4;
+  --screw-face: #e6c98a;
+  --screw-edge: #6d4a1e;
+}
+
+.appliance {
+  width: 15.8em;
+  height: 15.8em;
+  font-size: calc(min(88vmin, 620px) / 15.8);
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 0.42em 0.28em rgba(0, 0, 0, 0.22));
+}
+
+.body {
+  position: relative;
+  width: 14em;
+  height: 14em;
+  border-radius: 50%;
+  background: var(--shell);
+  box-shadow:
+    inset 0 0.35em 0.45em rgba(255, 255, 255, 0.28),
+    inset 0 -0.7em 0.9em rgba(0, 0, 0, 0.16),
+    0 0 0 0.14em rgba(0, 0, 0, 0.18);
+}
+
+.theme-kurumi .body {
+  box-shadow:
+    inset 0 0.45em 0.7em rgba(255, 220, 170, 0.16),
+    inset 0 -0.8em 1em rgba(0, 0, 0, 0.28),
+    0 0 0 0.16em #c6a15a;
+}
+
+.sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(205deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 34%);
+  pointer-events: none;
+  z-index: 4;
+  -webkit-mask: radial-gradient(circle, transparent 0 60%, #000 64% 100%);
+  mask: radial-gradient(circle, transparent 0 60%, #000 64% 100%);
+}
+
+.theme-kurumi .sheen {
+  opacity: 0.28;
+}
+
+.ticks {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from -0.35deg,
+    var(--tick) 0deg 0.7deg,
+    transparent 0.7deg 6deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 0 79%, #000 80% 86%, transparent 87%);
+  mask: radial-gradient(circle, transparent 0 79%, #000 80% 86%, transparent 87%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ticks-major {
+  inset: 6.5%;
+  background: repeating-conic-gradient(
+    from -0.55deg,
+    var(--tick-strong) 0deg 1.1deg,
+    transparent 1.1deg 30deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 0 74%, #000 75% 90%, transparent 91%);
+  mask: radial-gradient(circle, transparent 0 74%, #000 75% 90%, transparent 91%);
+}
+
+.dial-nums {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  font-size: 1em;
+  transform: rotate(var(--a)) translateY(-5.72em);
+}
+
+.mark span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%) rotate(calc(var(--a) * -1));
+  font-family: "Clock Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.34em;
+  letter-spacing: -0.03em;
+  color: var(--plate);
+  line-height: 1;
+}
+
+.screw {
+  position: absolute;
+  z-index: 5;
+  width: 0.46em;
+  height: 0.46em;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, #fff, var(--screw-face) 42%, var(--screw-edge));
+  box-shadow:
+    inset 0 0 0 0.04em rgba(0, 0, 0, 0.25),
+    0 0.04em 0.06em rgba(0, 0, 0, 0.18);
+}
+
+.screw::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 46%;
+  height: 0.045em;
+  background: rgba(40, 28, 16, 0.55);
+  transform: rotate(-18deg);
+}
+
+.screw-l {
+  left: 19%;
+  top: 20%;
+}
+
+.screw-r {
+  right: 19%;
+  top: 20%;
+}
+
+.bell {
+  position: absolute;
+  left: 50%;
+  top: 0.15em;
+  width: 3.5em;
+  height: 2.15em;
+  transform: translateX(-50%);
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.theme-shurei .bell {
+  opacity: 1;
+}
+
+.theme-shurei .mark-zero {
+  visibility: hidden;
+}
+
+.bell-dome {
+  display: block;
+  width: 100%;
+  height: 1.72em;
+  border-radius: 1.7em 1.7em 0.35em 0.35em;
+  background: linear-gradient(180deg, #ffb0a8 0%, #e24b42 48%, #8f2018 100%);
+  box-shadow:
+    inset 0 0.28em 0.35em rgba(255, 255, 255, 0.35),
+    0 0.18em 0 #7a1c16;
+}
+
+.bell-dome::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.28em;
+  width: 0.16em;
+  height: 0.42em;
+  transform: translateX(-50%);
+  border-radius: 0.1em;
+  background: #5c1814;
+}
+
+.bell-cap {
+  position: absolute;
+  left: 50%;
+  top: -0.22em;
+  width: 0.62em;
+  height: 0.38em;
+  transform: translateX(-50%);
+  border-radius: 0.16em 0.16em 0.08em 0.08em;
+  background: linear-gradient(180deg, #f8e7b0, #c8963e);
+  box-shadow: 0 0.04em 0 rgba(0, 0, 0, 0.2);
+}
+
+.face {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  z-index: 3;
+  width: 8.35em;
+  height: 8.35em;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--face);
+  box-shadow:
+    0 0 0 0.12em var(--bezel),
+    inset 0 0.08em 0 rgba(255, 255, 255, 0.55),
+    inset 0 -0.35em 0.5em rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22em;
+  padding: 0.7em 0.45em 0.55em;
+  box-sizing: border-box;
+}
+
+.brand,
+.period,
+.date {
+  margin: 0;
+  line-height: 1;
+}
+
+.brand {
+  font-family: "Clock Nunito", sans-serif;
+  font-weight: 800;
+  font-size: 0.4em;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  color: var(--plate);
+}
+
+.period,
+.date {
+  font-family: "Clock JP", sans-serif;
+  font-weight: 500;
+  color: var(--plate);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.period {
+  font-size: 0.38em;
+}
+
+.date {
+  font-size: 0.32em;
+}
+
+.period[hidden],
+.date[hidden] {
+  display: none !important;
+}
+
+.weekday {
+  color: var(--ink);
+}
+
+.lcd {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  background: var(--lcd);
+  border-radius: 0.28em;
+  padding: 0.2em 0.32em 0.16em;
+  box-shadow:
+    inset 0 0.12em 0.18em rgba(0, 0, 0, 0.28),
+    inset 0 -0.04em 0 rgba(255, 255, 255, 0.28);
+  font-size: var(--lcd-size);
+  line-height: 1;
+  overflow: hidden;
+}
+
+.lcd::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.digit {
+  position: relative;
+  display: inline-block;
+  width: 0.62em;
+  height: 1.14em;
+  margin: 0 0.035em;
+  flex: 0 0 auto;
+}
+
+.seg {
+  position: absolute;
+  background: currentColor;
+  opacity: 0.16;
+  transition: opacity 0.16s linear;
+}
+
+.digit.on-a .seg-a,
+.digit.on-b .seg-b,
+.digit.on-c .seg-c,
+.digit.on-d .seg-d,
+.digit.on-e .seg-e,
+.digit.on-f .seg-f,
+.digit.on-g .seg-g {
+  opacity: 1;
+}
+
+.seg-a,
+.seg-g,
+.seg-d {
+  height: 0.11em;
+  left: 0.13em;
+  right: 0.13em;
+  clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
+}
+
+.seg-a {
+  top: 0.02em;
+}
+
+.seg-g {
+  top: 50%;
+  margin-top: -0.055em;
+}
+
+.seg-d {
+  bottom: 0.02em;
+}
+
+.seg-b,
+.seg-c,
+.seg-e,
+.seg-f {
+  width: 0.11em;
+  clip-path: polygon(0 10%, 50% 0, 100% 10%, 100% 90%, 50% 100%, 0 90%);
+}
+
+.seg-f,
+.seg-b {
+  top: 0.08em;
+  height: 0.46em;
+}
+
+.seg-e,
+.seg-c {
+  bottom: 0.08em;
+  height: 0.46em;
+}
+
+.seg-f,
+.seg-e {
+  left: 0.02em;
+}
+
+.seg-b,
+.seg-c {
+  right: 0.02em;
+}
+
+.colon {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.26em;
+  width: 0.28em;
+  height: 1.14em;
+  flex: 0 0 auto;
+  animation: lcd-blink 1s steps(1, end) infinite;
+}
+
+.colon i {
+  display: block;
+  width: 0.13em;
+  height: 0.13em;
+  border-radius: 0.04em;
+  background: currentColor;
+}
+
+.knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) translateY(7.05em);
+  background: var(--knob);
+  box-shadow:
+    inset 0 0.12em 0.14em rgba(255, 255, 255, 0.65),
+    inset 0 -0.16em 0.2em rgba(0, 0, 0, 0.22),
+    0 0.12em 0.16em rgba(0, 0, 0, 0.22),
+    0 0 0 0.06em rgba(0, 0, 0, 0.18);
+}
+
+.knob-mark {
+  position: absolute;
+  left: 50%;
+  top: 0.22em;
+  width: 0.16em;
+  height: 0.42em;
+  transform: translateX(-50%);
+  border-radius: 0.08em;
+  background: var(--mark);
+}
+
+@keyframes lcd-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.28;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .colon {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  .seg {
+    transition: none !important;
+  }
+}
