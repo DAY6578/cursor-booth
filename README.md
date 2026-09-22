@@ -57,7 +57,7 @@ scripts/           購入者zipの組み立て
 
 `products/obs-clock/README.md` が、この2つの索引である。
 
-Discordサーバーの設計・運用キットは `products/discord-server-kit/` にある。購入者向け zip は `scripts/build-discord-server-kit-zip.py` が `releases/discord-server-kit.zip` に作る。`販売ページ/` は入れない。公開はしない。
+Discordサーバーの設計・運用キットは `products/discord-server-kit/` にある。購入者の入り口は `products/discord-server-kit/はじめての人へ.html`。購入者向け zip は `scripts/build-discord-server-kit-zip.py` が `releases/discord-server-kit.zip` に作る。`販売ページ/` は入れない。公開はしない。
 
 ## ラベル
 

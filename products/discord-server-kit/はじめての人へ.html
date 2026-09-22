@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>はじめての人へ — Discordサーバーキット</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1c1917;
+      --muted: #44403c;
+      --line: #d6d3d1;
+      --paper: #f6f3ee;
+      --card: #fff;
+      --accent: #1d4e89;
+      --accent-ink: #fff;
+      --warn: #fff4d6;
+      --warn-line: #b45309;
+      --ok: #14532d;
+      --ok-bg: #ecfdf3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--warn);
+      border-bottom: 3px solid var(--warn-line);
+    }
+    .brand {
+      margin: 0;
+      padding: 8px 16px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .rule {
+      margin: 0;
+      padding: 6px 16px 8px;
+      font-weight: 700;
+    }
+    .save {
+      margin: 0;
+      padding: 0 16px 8px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    main {
+      max-width: 46rem;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+    h1 { font-size: 1.8rem; line-height: 1.3; margin: 0 0 8px; }
+    h2 { font-size: 1.5rem; line-height: 1.35; margin: 0 0 8px; scroll-margin-top: 8rem; }
+    h3 { font-size: 1.15rem; margin: 1.4rem 0 0.4rem; }
+    p { margin: 0.4rem 0 0.8rem; }
+    ol, ul { margin: 0.2rem 0 0.8rem; padding-left: 1.4rem; }
+    li { margin: 0.25rem 0; }
+    a { color: var(--accent); }
+    button { font: inherit; cursor: pointer; }
+    .lead { font-size: 1.05rem; }
+    .choices { display: grid; gap: 12px; margin: 16px 0; }
+    @media (min-width: 720px) {
+      .choices { grid-template-columns: 1fr 1fr; }
+    }
+    .choice {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      min-height: 168px;
+      padding: 18px;
+      text-align: left;
+      background: var(--card);
+      border: 3px solid var(--accent);
+      border-radius: 16px;
+    }
+    .choice:hover { background: #e8f1fb; }
+    .choice-title { font-size: 1.45rem; font-weight: 700; }
+    .choice-sub { font-size: 1rem; font-weight: 400; color: var(--muted); }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 16px;
+    }
+    .nav button {
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.92rem;
+    }
+    .nav button[aria-current="step"] {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    .nav button.is-done { border-color: var(--ok); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 14px 4px;
+      margin: 10px 0;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f5f5f4;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 4px 4px 12px;
+    }
+    .copy, .ghost, .back {
+      border: 1px solid var(--accent);
+      background: var(--card);
+      color: var(--accent);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .copy { border-radius: 999px; padding: 6px 10px; font-size: 0.92rem; }
+    .copy.done { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #fafaf9;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      font-family: ui-monospace, "Cascadia Mono", "Yu Gothic", Meiryo, monospace;
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+    .callout {
+      background: var(--warn);
+      border: 2px solid var(--warn-line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-weight: 700;
+    }
+    .callout.ok {
+      background: var(--ok-bg);
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+    .done-box {
+      background: #f5f5f4;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 12px 0;
+    }
+    .check {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin: 8px 0;
+    }
+    .check input { width: 1.35rem; height: 1.35rem; margin-top: 0.2rem; flex: none; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .next {
+      flex: 1 1 16rem;
+      min-height: 64px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .back { min-height: 64px; padding: 8px 16px; font-size: 1.05rem; }
+    .links { margin-top: 16px; }
+    .links a { display: inline-block; margin: 4px 12px 4px 0; }
+    :focus-visible { outline: 3px solid var(--warn-line); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <p class="brand">Discordサーバーキット。ダブルクリックで開きます。ネットもボットも不要です。</p>
+    <p class="rule" id="permission-rule">拒否は@everyoneだけ。メンバー/選手ロールに赤を付けない。受付閉じは@everyoneの送信だけ拒否。</p>
+    <p class="save" id="save-state"></p>
+  </header>
+  <main id="app">
+    <p>手順を読み込んでいます。この表示のままなら、ブラウザの JavaScript をオンにして開き直してください。</p>
+  </main>
+  <noscript>
+    <p>JavaScript をオンにして、このファイルを開き直してください。ネット接続は不要です。</p>
+  </noscript>
+  <script>
+"use strict";
+
+var STORAGE_KEY = "discord-kit-wizard-v1";
+var storageOk = true;
+
+var FAN_RULES = [
+  "【コミュニティ名】のルール",
+  "",
+  "このサーバーは、【コミュニティ名】の参加者同士が話す場所です。権利者の公式サーバーではありません。",
+  "",
+  "1. Discordの利用規約と、住んでいる地域の法律に従ってください。",
+  "2. 誹謗中傷、差別、嫌がらせ、性的な嫌がらせをしないでください。",
+  "3. 自分と他人の個人情報を書かないでください。本名の強制公開、住所、電話番号、通っている学校や職場、口座、パスワードは禁止です。",
+  "4. 他人の作品、配信、文章を、許可なく貼らないでください。自分の作品の告知は「作品と配信」でできます。",
+  "5. 営業、勧誘、このサーバーと無関係な宣伝は、先に運営へ聞いてください。",
+  "6. ネタバレを書くときは、作品名を先に書き、本文は折りたたみか、相手の同意があるときだけにしてください。",
+  "7. 運営の注意に従ってください。繰り返す場合は、注意、タイムアウト、キック、参加禁止の順で対応します。",
+  "8. ルールの抜け道になる頼み方は、ルール違反と同じに扱います。",
+  "",
+  "運営への連絡は、公開の会話を止めたいときに「質問」チャンネルで「運営へ」と書いてください。個人情報を含む相談は、そこに書かず、運営の表示名へダイレクトメッセージで「相談がある」とだけ送ってください。本文は、運営が案内した場所で聞きます。",
+  "",
+  "この文章は運営のためのたたき台であり、法律の助言ではありません。"
+].join("\n");
+
+var FAN_WELCOME = [
+  "【コミュニティ名】へようこそ。",
+  "",
+  "このサーバーは、参加者同士の交流場所です。公式の窓口ではありません。",
+  "",
+  "最初に読む場所",
+  "1. 「ルール」を読む",
+  "2. 「自己紹介」に、固定してある型を1回書く",
+  "3. 運営がメンバーロールを付けたら、「雑談」「作品と配信」「コラボ募集」「質問」と、ボイスチャンネルが使えます",
+  "",
+  "お知らせを受け取りたい人は、自己紹介に「お知らせ希望」と書いてください。希望した人だけに、お知らせ通知ロールを付けます。",
+  "",
+  "やってはいけないことの詳細は、ルールに書いてあります。",
+  "個人の連絡先は、このチャンネルに書かないでください。"
+].join("\n");
+
+var FAN_INTRO = [
+  "自己紹介は、この型で1人1回書いてください。書いたあとに、運営がメンバーロールを付けます。",
+  "",
+  "呼び名:",
+  "好きなこと:",
+  "このサーバーでしたいこと:",
+  "お知らせ希望: 希望する / 希望しない",
+  "作品や配信の場所（任意）:",
+  "",
+  "本名、住所、電話番号、学校名、職場名は書かないでください。"
+].join("\n");
+
+var EVENT_RULES = [
+  "【大会名】のルール",
+  "",
+  "このサーバーは、【大会名】の連絡場所です。ゲームの権利者の公式大会ではありません。",
+  "",
+  "1. Discordの利用規約と、住んでいる地域の法律に従ってください。",
+  "2. 主催とスタッフの進行に従ってください。呼び出しに返事が無い場合は、当日手順の待ち時間で判断します。",
+  "3. 誹謗中傷、差別、嫌がらせ、試合の妨害をしないでください。",
+  "4. 個人情報を書かないでください。本名の強制、住所、電話番号、パスワード、部屋が映る画像は禁止です。",
+  "5. 不正なツール、なりすまし、他人のアカウントの利用は、参加禁止にします。",
+  "6. 結果は、スタッフが「結果」チャンネルに書いたものを正とします。異議は、その投稿から【分】以内に「試合連絡」へ書いてください。時間を過ぎた異議は、次の試合を止めません。",
+  "7. 欠席、遅刻、早退は、「欠席連絡」の型で、開始【分】前までに書いてください。",
+  "8. 配信と録画の可否は、告知に書いたほうに従ってください。選手の声や画面を、許可なく切り抜いて公開しないでください。",
+  "9. 賞品や参加費がある場合は、告知に書いた方法だけが有効です。このサーバーの会話のなかで、個別の支払い先を聞きません。",
+  "",
+  "【ゲーム名】で主催が足す細則:",
+  "- ",
+  "- ",
+  "",
+  "この文章は運営のためのたたき台であり、法律の助言ではありません。"
+].join("\n");
+
+var EVENT_ENTRY = [
+  "【大会名】の参加受付",
+  "",
+  "ゲーム: 【ゲーム名】",
+  "日時: 【日付】 【時刻】（日本時間）",
+  "定員: 【人数】",
+  "受付締切: 【日付】 【時刻】",
+  "参加条件: ルールチャンネルを読んでいること",
+  "",
+  "この型を、1チームまたは1人につき1件書いてください。",
+  "",
+  "チーム名（個人参加なら「個人」）:",
+  "代表の表示名:",
+  "参加者の表示名:",
+  "人数:",
+  "ゲーム内の表示名:",
+  "連絡が取れる時間帯:",
+  "観戦だけ希望: する / しない",
+  "",
+  "ファイルの添付はできません。",
+  "本名、住所、電話番号、メールアドレスは書かないでください。",
+  "締切後の追加は、スタッフの表示名へ「受付の追加がある」とだけ送ってください。条件はスタッフが返します。"
+].join("\n");
+
+var EVENT_SCHEDULE = [
+  "【大会名】の日程",
+  "",
+  "日付: 【日付】",
+  "受付開始: 【時刻】（日本時間）",
+  "試合開始: 【時刻】（日本時間）",
+  "終了の目安: 【時刻】（日本時間）",
+  "",
+  "場所: このサーバーのボイスチャンネル",
+  "- 集合は「待機」",
+  "- 出場は「試合」",
+  "- 見るだけの人は「観戦」",
+  "",
+  "ゲーム: 【ゲーム名】",
+  "配信: する / しない",
+  "配信する場合の範囲: 試合ボイスの音声 / ゲーム画面 / 両方 / 配信しない",
+  "",
+  "遅れる場合: 開始の【分】前までに「欠席連絡」へ書いてください。",
+  "無連絡の場合: 当日手順の待ち時間を過ぎたら、不戦とします。",
+  "",
+  "このピンが、時刻の正です。"
+].join("\n");
+
+var EVENT_ABSENCE = [
+  "欠席、遅刻、早退は、この型で1件書いてください。",
+  "開始の【分】前までに書いてください。それより遅い連絡は、当日手順どおりに不戦や途中交代を判断します。",
+  "",
+  "チーム名（個人参加なら「個人」）:",
+  "表示名:",
+  "区分: 欠席 / 遅刻 / 早退",
+  "到着または離席の目安（日本時間）:",
+  "代わりに出られる表示名（いない場合は「なし」）:",
+  "",
+  "理由の詳細、住所、体調の診断名は書かないでください。一言で足ります。"
+].join("\n");
+
+var EVERYONE_OFF = [
+  "メッセージを送信",
+  "スレッドでメッセージを送信",
+  "公開スレッドの作成",
+  "リアクションの追加",
+  "ファイルを添付",
+  "埋め込みリンク",
+  "全員へのメンション",
+  "招待を作成",
+  "接続",
+  "発言",
+  "ビデオ",
+  "画面共有",
+  "メンバーをキック",
+  "メンバーをBAN",
+  "メンバーをタイムアウト",
+  "メッセージの管理",
+  "チャンネルの管理",
+  "ロールの管理",
+  "サーバー管理",
+  "監査ログの表示",
+  "管理者"
+];
+
+var MOD_ON = [
+  "メッセージを送信",
+  "リアクションの追加",
+  "ファイルを添付",
+  "埋め込みリンク",
+  "招待を作成",
+  "メッセージの管理",
+  "メンバーをタイムアウト",
+  "メンバーをキック",
+  "メンバーを移動",
+  "メンバーをミュート",
+  "ニックネームの管理",
+  "監査ログの表示"
+];
+
+var ADMIN_EXTRA = ["メンバーをBAN", "チャンネルの管理", "ロールの管理", "サーバー管理"];
+
+var STAFF_ON = [
+  "メッセージを送信",
+  "リアクションの追加",
+  "ファイルを添付",
+  "招待を作成",
+  "メッセージの管理",
+  "メンバーをタイムアウト",
+  "メンバーをキック",
+  "メンバーを移動",
+  "メンバーをミュート",
+  "ニックネームの管理",
+  "監査ログの表示"
+];
+
+function serverStep() {
+  return {
+    id: "server",
+    title: "サーバーを作る",
+    lead: "まだ招待リンクは作りません。自分だけが入っているサーバーを作ります。",
+    done: "左の一覧に、新しいサーバーが出ている。メンバーは自分だけ。",
+    sections: [
+      {
+        type: "steps",
+        title: "押す場所",
+        items: [
+          "Discordのアプリ、またはブラウザ版を開く。",
+          "左のサーバー一覧で「＋」を押す。",
+          "「サーバーを作成」から、自分で作る（オリジナルの作成、または同じ意味の項目）を選ぶ。",
+          "用途を聞かれたら「自分と友達のため」を選ぶ。コミュニティ機能は、いまはオフのままでよい。",
+          "サーバー名を付ける。アイコンを置くなら、自作か、使ってよい画像だけにする。他社のロゴや「公式」「公認」は入れない。",
+          "作成できたら、次へ進む。"
+        ]
+      },
+      {
+        type: "callout",
+        text: "メニューの名前が違っても、同じ意味の項目で作れます。テンプレート機能が無くても、この画面の手順だけで作れます。"
+      }
+    ]
+  };
+}
+
+function permissionHow() {
+  return {
+    type: "steps",
+    title: "権限の画面の開き方",
+    items: [
+      "チャンネル名の右にある歯車を押す。カテゴリにも歯車があります。",
+      "「権限」を開く。",
+      "ロールを追加する。",
+      "緑は許可、赤は拒否です。斜線（触らない）は、上の設定のままです。",
+      "保存する。カテゴリを保存したとき、中のチャンネルへ同期するか聞かれたら、同じ設定のチャンネルは同期する。",
+      "名前が違うときは、同じ意味の項目を探す。緑と赤が無い画面では、オンを許可、明示的な拒否を赤とみなす。"
+    ]
+  };
+}
+
+var PACKS = {
+  fan: {
+    id: "fan",
+    label: "ファンコミュニティ",
+    steps: [
+      serverStep(),
+      {
+        id: "roles",
+        title: "ロールを作る",
+        lead: "4つ作ります。上が強く、下が弱いです。@everyone は最初からあり、消しません。",
+        done: "上から、管理者、モデレーター、お知らせ通知、メンバー、@everyone の順になっている。どのロールにも「管理者」権限が付いていない。",
+        sections: [
+          {
+            type: "steps",
+            title: "押す場所",
+            items: [
+              "サーバー名をクリックする。",
+              "「サーバー設定」を開く。",
+              "左の「ロール」を開く。",
+              "「ロールを作成」で、下の4つを作る。名前はコピーして貼る。",
+              "ロール一覧をドラッグして、表示どおりの順（上が強い）にする。",
+              "各ロールで、下に書いた権限だけをオンにする。書いていない権限はオフのままにする。",
+              "保存する。"
+            ]
+          },
+          {
+            type: "copies",
+            title: "作るロール（この順。上が強い）",
+            items: ["管理者", "モデレーター", "お知らせ通知", "メンバー"]
+          },
+          {
+            type: "bullets",
+            title: "@everyone でオンのまま",
+            items: ["チャンネルを見る", "メッセージ履歴を読む"]
+          },
+          {
+            type: "bullets",
+            title: "@everyone でオフ",
+            items: EVERYONE_OFF
+          },
+          {
+            type: "bullets",
+            title: "管理者でオン（「管理者」権限そのものはオフ）",
+            items: MOD_ON.concat(ADMIN_EXTRA)
+          },
+          {
+            type: "bullets",
+            title: "モデレーターでオン",
+            items: MOD_ON
+          },
+          {
+            type: "bullets",
+            title: "モデレーターではオフのまま",
+            items: ["メンバーをBAN", "チャンネルの管理", "ロールの管理", "サーバー管理", "全員へのメンション", "管理者"]
+          },
+          {
+            type: "bullets",
+            title: "お知らせ通知",
+            items: [
+              "権限は足さない。すべてオフのまま。",
+              "「このロールへのメンションを許可する」だけをオンにする。",
+              "並びは、メンバーの上、モデレーターの下。"
+            ]
+          },
+          {
+            type: "bullets",
+            title: "メンバー",
+            items: [
+              "サーバー全体でオンにする権限は無い。送信は、次のチャンネル手順で緑にする。",
+              "全員へのメンションと「管理者」はオフ。"
+            ]
+          },
+          {
+            type: "callout",
+            text: "色は見分け用です。管理者は暗い赤、モデレーターは暗い青、お知らせ通知は黄、メンバーは緑でよい。別の色でも権限は変わりません。"
+          }
+        ]
+      },
+      {
+        id: "channels",
+        title: "チャンネルを作る",
+        lead: "カテゴリを先に作り、その中へチャンネルを入れます。権限は次の手順です。",
+        done: "カテゴリ4つと、チャンネル10個（テキスト8、ボイス2）がある。",
+        sections: [
+          {
+            type: "steps",
+            title: "押す場所",
+            items: [
+              "チャンネル一覧の空きを右クリックするか、サーバー名のメニューから「カテゴリを作成」を選ぶ。",
+              "下のカテゴリ名を、上から順に作る。",
+              "カテゴリにカーソルを合わせ、＋からチャンネルを作る。種類（テキストかボイス）を選んでから、名前を貼る。",
+              "「雑談」はテキストとボイスで1つずつ作る。同じ名前でよい。"
+            ]
+          },
+          {
+            type: "copies",
+            title: "カテゴリ名",
+            items: ["案内", "交流", "ボイス", "運営"]
+          },
+          {
+            type: "channels",
+            groups: [
+              { category: "案内", items: [
+                ["ルール", "テキスト"],
+                ["お知らせ", "テキスト"],
+                ["自己紹介", "テキスト"]
+              ]},
+              { category: "交流", items: [
+                ["雑談", "テキスト"],
+                ["作品と配信", "テキスト"],
+                ["コラボ募集", "テキスト"],
+                ["質問", "テキスト"]
+              ]},
+              { category: "ボイス", items: [
+                ["雑談", "ボイス"],
+                ["作業", "ボイス"]
+              ]},
+              { category: "運営", items: [
+                ["運営メモ", "テキスト"]
+              ]}
+            ]
+          },
+          {
+            type: "callout",
+            text: "チャンネルの説明文（トピック）は、いまは空でよい。細かい文は詳細の pack-fan/01-channels.md にあります。"
+          }
+        ]
+      },
+      {
+        id: "perms",
+        title: "権限を付ける",
+        lead: "赤は @everyone にだけ付けます。メンバー、お知らせ通知、モデレーター、管理者に赤は付けません。",
+        done: "ロールを外したテスト用アカウントには、ルール、お知らせ、自己紹介だけが見える。書けるのは自己紹介だけ。運営メモは見えない。",
+        sections: [
+          permissionHow(),
+          {
+            type: "cards",
+            title: "付ける場所",
+            items: [
+              {
+                title: "案内カテゴリ（ルール、お知らせ）",
+                lines: [
+                  "@everyone: チャンネルを見るを緑、メッセージを送信を赤。",
+                  "モデレーター: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "管理者: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "メンバーとお知らせ通知: 上書きを足さない。",
+                  "保存して、中のチャンネルへ同期する。"
+                ]
+              },
+              {
+                title: "自己紹介（同期のあと、このチャンネルだけ）",
+                lines: [
+                  "@everyone のメッセージを送信を緑にする。",
+                  "ほかのロールに赤は付けない。ロールが無い人も、ここにだけ書ける。"
+                ]
+              },
+              {
+                title: "交流カテゴリ（雑談、作品と配信、コラボ募集、質問）",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "メンバー: チャンネルを見る、メッセージを送信、ファイルを添付、埋め込みリンク、リアクションの追加を緑。",
+                  "モデレーターと管理者: メンバーと同じ緑。",
+                  "同期する。"
+                ]
+              },
+              {
+                title: "ボイスカテゴリ（雑談、作業）",
+                lines: [
+                  "@everyone: チャンネルを見るを赤、接続を赤。",
+                  "メンバー: チャンネルを見る、接続、発言を緑。",
+                  "モデレーターと管理者: メンバーと同じ緑。",
+                  "同期する。"
+                ]
+              },
+              {
+                title: "運営カテゴリ（運営メモ）",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "モデレーターと管理者: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "メンバーとお知らせ通知: 上書きを足さない。赤は付けない。",
+                  "同期する。"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "paste",
+        title: "文面を貼る",
+        lead: "【　】で囲んだ部分を、自分の言葉に変えてから貼ります。メールアドレスや電話番号は足しません。",
+        done: "ルール、お知らせ、自己紹介に、それぞれ1件がピン留めされている。【　】が残っていない。",
+        sections: [
+          {
+            type: "steps",
+            title: "貼り方",
+            items: [
+              "文面をコピーする。",
+              "【　】の中を、自分のコミュニティの言葉に変える。",
+              "指定のチャンネルに貼る。",
+              "そのメッセージをピン留めする。古いピンが別にあれば外す。",
+              "「公式」「公認」と書かない。"
+            ]
+          },
+          {
+            type: "pastes",
+            items: [
+              { title: "ルール", where: "「ルール」に貼って、ピン留めする。", body: FAN_RULES },
+              { title: "歓迎", where: "「お知らせ」に貼って、ピン留めする。", body: FAN_WELCOME },
+              { title: "自己紹介の型", where: "「自己紹介」に貼って、ピン留めする。", body: FAN_INTRO },
+              {
+                title: "任意。ルール同意を使うときだけ",
+                where: "歓迎文の末尾に足す。コミュニティ機能を使わないときは貼らない。",
+                body: "参加時にルール同意が出ます。同意するまで、チャンネルへの投稿はできません。"
+              }
+            ]
+          },
+          {
+            type: "callout",
+            text: "role-cards の画像は、ルールに貼らなくてもサーバーは作れます。"
+          }
+        ]
+      },
+      {
+        id: "join",
+        title: "参加を確認する",
+        lead: "メンバーは、人が見て手で付けます。ボットは使いません。",
+        done: "テスト用アカウントは、メンバーが無いとき自己紹介以外に書けない。メンバーを付けると雑談に書ける。",
+        sections: [
+          {
+            type: "steps",
+            title: "自己紹介を見てから付ける",
+            items: [
+              "自己紹介が1件ある。",
+              "呼び名、好きなこと、このサーバーでしたいこと、が書いてある。",
+              "個人情報が無い。宣伝だけ、または空の投稿ではない。",
+              "問題がなければ、その人に「メンバー」を付ける。",
+              "お知らせ希望が「希望する」の人だけ、「お知らせ通知」を付ける。全員には付けない。",
+              "下の返信を1回返す。"
+            ]
+          },
+          {
+            type: "pastes",
+            items: [
+              {
+                title: "返信",
+                where: "自己紹介への返信に使う。",
+                body: "確認しました。メンバーロールを付けました。交流チャンネルが使えます。"
+              }
+            ]
+          },
+          {
+            type: "bullets",
+            title: "ルール同意の画面があるとき（任意）",
+            items: [
+              "サーバー設定でコミュニティを有効にできるときだけ、ルール同意をオンにしてよい。",
+              "メニューが無いときは、上の手作業だけで公開できる。",
+              "同意のあとも、メンバーは自己紹介を見てから手で付ける。"
+            ]
+          }
+        ]
+      },
+      {
+        id: "check",
+        title: "公開前チェック",
+        final: true,
+        lead: "ここが終わるまで、招待リンクを配りません。",
+        groups: [
+          {
+            title: "ロール",
+            items: [
+              "並びが、管理者、モデレーター、お知らせ通知、メンバー、@everyone の順である",
+              "どのロールにも「管理者」権限が付いていない",
+              "モデレーターに、BAN、チャンネルの管理、ロールの管理が付いていない",
+              "お知らせ通知は、メンション許可以外の権限が増えていない"
+            ]
+          },
+          {
+            title: "チャンネル",
+            items: [
+              "10個ある。ルール、お知らせ、自己紹介、雑談、作品と配信、コラボ募集、質問、雑談ボイス、作業ボイス、運営メモ",
+              "ロールが無いテスト用アカウントには、ルール、お知らせ、自己紹介だけが見える",
+              "そのアカウントは、自己紹介以外に書けない",
+              "メンバーを付けると、交流4チャンネルとボイス2つが使える",
+              "運営メモは、モデレーターと管理者以外から見えない",
+              "ルール、歓迎、自己紹介の型が、それぞれのチャンネルにピン留めされている",
+              "文面の【　】が残っていない"
+            ]
+          },
+          {
+            title: "安全",
+            items: [
+              "サーバー名とアイコンに、他社ロゴと「公式」「公認」が無い",
+              "招待は期限と回数が付いている。無期限のリンクを、公開前に配っていない",
+              "common/03-moderation-first-response.md の初動を、運営が読んだ",
+              "common/05-backup-and-handoff.md を、所有者が読んだ",
+              "テンプレートを作る場合は、生成と保管が終わっている。メニューが無い場合は、チャンネル表とロール表を手元に写した"
+            ]
+          },
+          {
+            title: "配るとき",
+            items: [
+              "招待を渡す相手が、このサーバーの参加者として想定した人である",
+              "配った日付と、期限を運営メモに書いた。リンクの全文は書かない"
+            ]
+          }
+        ],
+        links: [
+          { href: "pack-fan/07-prepublish-checklist.md", label: "公開前チェックリストの文書" },
+          { href: "common/03-moderation-first-response.md", label: "モデレーションの初動" },
+          { href: "common/05-backup-and-handoff.md", label: "バックアップと引き継ぎ" }
+        ]
+      }
+    ]
+  },
+  event: {
+    id: "event",
+    label: "大会・カスタム",
+    steps: [
+      serverStep(),
+      {
+        id: "roles",
+        title: "ロールを作る",
+        lead: "5つ作ります。上が強く、下が弱いです。@everyone は最初からあり、消しません。",
+        done: "上から、主催、スタッフ、選手、待機、観戦、@everyone の順になっている。どのロールにも「管理者」権限が付いていない。",
+        sections: [
+          {
+            type: "steps",
+            title: "押す場所",
+            items: [
+              "サーバー名をクリックする。",
+              "「サーバー設定」を開く。",
+              "左の「ロール」を開く。",
+              "「ロールを作成」で、下の5つを作る。名前はコピーして貼る。",
+              "ロール一覧をドラッグして、表示どおりの順（上が強い）にする。",
+              "各ロールで、下に書いた権限だけをオンにする。書いていない権限はオフのままにする。",
+              "保存する。"
+            ]
+          },
+          {
+            type: "copies",
+            title: "作るロール（この順。上が強い）",
+            items: ["主催", "スタッフ", "選手", "待機", "観戦"]
+          },
+          {
+            type: "bullets",
+            title: "@everyone でオンのまま",
+            items: ["チャンネルを見る", "メッセージ履歴を読む"]
+          },
+          {
+            type: "bullets",
+            title: "@everyone でオフ",
+            items: EVERYONE_OFF
+          },
+          {
+            type: "bullets",
+            title: "主催でオン（「管理者」権限そのものはオフ）",
+            items: STAFF_ON.concat(ADMIN_EXTRA)
+          },
+          {
+            type: "bullets",
+            title: "主催でもオフのまま",
+            items: ["全員へのメンション", "ビデオ", "画面共有", "管理者"]
+          },
+          {
+            type: "bullets",
+            title: "スタッフでオン",
+            items: STAFF_ON
+          },
+          {
+            type: "bullets",
+            title: "スタッフではオフのまま",
+            items: ["メンバーをBAN", "チャンネルの管理", "ロールの管理", "サーバー管理", "全員へのメンション", "ビデオ", "画面共有", "管理者"]
+          },
+          {
+            type: "bullets",
+            title: "選手、待機、観戦",
+            items: [
+              "サーバー全体でオンにする権限は無い。見る、送る、接続は、チャンネル側の緑で付ける。",
+              "ビデオと画面共有はオフ。試合で画面が必要なときだけ、主催がその大会のあいだ、試合ボイスの選手に画面共有を許可し、終わったら戻す。許可したことをスタッフ連絡に1行残す。",
+              "全員へのメンションと「管理者」はオフ。"
+            ]
+          },
+          {
+            type: "callout",
+            text: "色は見分け用です。主催は暗い青、スタッフは暗い緑、選手は暗い黄、待機は灰色、観戦は紫でよい。別の色でも権限は変わりません。"
+          }
+        ]
+      },
+      {
+        id: "channels",
+        title: "チャンネルを作る",
+        lead: "カテゴリを先に作り、その中へチャンネルを入れます。権限は次の手順です。",
+        done: "テキスト9個と、ボイス3個がある。",
+        sections: [
+          {
+            type: "steps",
+            title: "押す場所",
+            items: [
+              "チャンネル一覧の空きを右クリックするか、サーバー名のメニューから「カテゴリを作成」を選ぶ。",
+              "下のカテゴリ名を、上から順に作る。",
+              "カテゴリにカーソルを合わせ、＋からチャンネルを作る。種類を選んでから、名前を貼る。",
+              "「待機」「試合」「観戦」はボイスです。同じ名前のテキストは作りません。"
+            ]
+          },
+          {
+            type: "copies",
+            title: "カテゴリ名",
+            items: ["案内", "参加", "試合", "ボイス", "運営"]
+          },
+          {
+            type: "channels",
+            groups: [
+              { category: "案内", items: [
+                ["大会告知", "テキスト"],
+                ["ルール", "テキスト"],
+                ["日程", "テキスト"]
+              ]},
+              { category: "参加", items: [
+                ["参加受付", "テキスト"],
+                ["チーム連絡", "テキスト"],
+                ["欠席連絡", "テキスト"]
+              ]},
+              { category: "試合", items: [
+                ["試合連絡", "テキスト"],
+                ["結果", "テキスト"]
+              ]},
+              { category: "ボイス", items: [
+                ["待機", "ボイス"],
+                ["試合", "ボイス"],
+                ["観戦", "ボイス"]
+              ]},
+              { category: "運営", items: [
+                ["スタッフ連絡", "テキスト"]
+              ]}
+            ]
+          },
+          {
+            type: "callout",
+            text: "チームごとのチャンネルは増やしません。大会告知には、日付、ゲーム名、定員だけを主催が書きます。説明文（トピック）の文例は pack-event/01-channels.md にあります。"
+          }
+        ]
+      },
+      {
+        id: "perms",
+        title: "権限を付ける",
+        lead: "赤は @everyone にだけ付けます。選手、待機、観戦、スタッフ、主催に赤は付けません。",
+        done: "ロールが無いアカウントには、大会告知、ルール、日程、参加受付だけが見える。書けるのは参加受付だけ。選手、待機、観戦に赤が無い。",
+        sections: [
+          permissionHow(),
+          {
+            type: "callout",
+            text: "受付を閉じるときは、参加受付の @everyone の送信だけを赤にする。見るは緑のまま。選手と待機に赤は付けない。次に開くときは、@everyone の送信を緑に戻す。"
+          },
+          {
+            type: "cards",
+            title: "付ける場所",
+            items: [
+              {
+                title: "大会告知、ルール、日程（3つとも同じ）",
+                lines: [
+                  "@everyone: チャンネルを見るを緑、メッセージを送信を赤。",
+                  "スタッフと主催: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "選手、待機、観戦: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "参加受付",
+                lines: [
+                  "@everyone: チャンネルを見るを緑、メッセージを送信を緑、ファイルを添付を赤。",
+                  "スタッフと主催: メッセージを送信を緑。閉じたあとも、スタッフが書けるようにするため。",
+                  "選手、待機、観戦: 上書きを足さない。",
+                  "閉じるとき: @everyone の送信だけを赤にする。見るは緑。ファイルの赤はそのまま。選手と待機には赤を付けない。",
+                  "次に開くとき: @everyone の送信を緑に戻す。"
+                ]
+              },
+              {
+                title: "チーム連絡",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "選手: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "スタッフと主催: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "待機と観戦: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "欠席連絡",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "選手と待機: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "スタッフと主催: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "観戦: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "試合連絡",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "選手: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "待機: チャンネルを見るだけ緑。送信は付けない。赤も付けない。",
+                  "スタッフと主催: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "観戦: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "結果",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "選手と観戦: チャンネルを見るを緑、リアクションの追加を緑。送信は付けない。",
+                  "スタッフと主催: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "待機: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "待機（ボイス）",
+                lines: [
+                  "@everyone: チャンネルを見るを赤、接続を赤。",
+                  "選手と待機: チャンネルを見る、接続、発言を緑。",
+                  "スタッフと主催: チャンネルを見る、接続、発言を緑。",
+                  "観戦: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "試合（ボイス）",
+                lines: [
+                  "@everyone: チャンネルを見るを赤、接続を赤。",
+                  "選手: チャンネルを見る、接続、発言を緑。",
+                  "スタッフと主催: チャンネルを見る、接続、発言を緑。",
+                  "待機と観戦: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "観戦（ボイス）",
+                lines: [
+                  "@everyone: チャンネルを見るを赤、接続を赤。",
+                  "観戦: チャンネルを見るを緑、接続を緑。発言は付けない。赤にもしない。",
+                  "スタッフと主催: チャンネルを見る、接続、発言を緑。",
+                  "選手と待機: 上書きを足さない。"
+                ]
+              },
+              {
+                title: "スタッフ連絡",
+                lines: [
+                  "@everyone: チャンネルを見るを赤。",
+                  "スタッフと主催: チャンネルを見るを緑、メッセージを送信を緑。",
+                  "選手、待機、観戦: 上書きを足さない。赤は付けない。"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: "paste",
+        title: "文面を貼る",
+        lead: "【　】で囲んだ部分を、自分の大会の言葉に変えてから貼ります。メールアドレスや電話番号の欄は足しません。",
+        done: "ルール、参加受付、日程、欠席連絡に、型がピン留めされている。【　】が残っていない。",
+        sections: [
+          {
+            type: "steps",
+            title: "貼り方",
+            items: [
+              "文面をコピーする。",
+              "【　】の中を、大会名、ゲーム名、日付、時刻、人数、分数に変える。",
+              "指定のチャンネルに貼る。",
+              "そのメッセージをピン留めする。日程を変えたら、古いピンを外して新しい文面をピンする。",
+              "細則が無いときは、空の箇条書きに「今回は追加の細則はありません」と書く。"
+            ]
+          },
+          {
+            type: "pastes",
+            items: [
+              { title: "ルール", where: "「ルール」に貼って、ピン留めする。", body: EVENT_RULES },
+              { title: "参加受付", where: "「参加受付」に貼って、ピン留めする。", body: EVENT_ENTRY },
+              { title: "日程", where: "「日程」に貼って、ピン留めする。", body: EVENT_SCHEDULE },
+              { title: "欠席", where: "「欠席連絡」に貼って、ピン留めする。", body: EVENT_ABSENCE }
+            ]
+          },
+          {
+            type: "callout",
+            text: "role-cards の画像は、ルールに貼らなくても進行できます。賞品の支払い方法は、このキットの外で決めたことを告知に1行で書きます。"
+          }
+        ]
+      },
+      {
+        id: "assign",
+        title: "受付でロールを付ける",
+        lead: "参加受付の型を見て、人が手でロールを付けます。ボットは使いません。",
+        done: "テスト用アカウントに選手を付けると、チーム連絡が見える。外すと、案内と参加受付以外は見えない。",
+        sections: [
+          {
+            type: "steps",
+            title: "1件ごとに見ること",
+            items: [
+              "必須の行が空でない。",
+              "個人情報らしいものが無い。あれば消して、書き直しを頼む。内容はスタッフ連絡に写さない。",
+              "定員を超える分は、待機にするか、受付終了を告知する。",
+              "観戦だけ希望が「する」なら、観戦だけを付ける。選手は付けない。",
+              "出場が確定なら選手。未確定や補欠なら待機。選手と観戦は同時に付けない。",
+              "スタッフ連絡に、表示名と付けたロールだけを1行残す。",
+              "下の返信を1回返す。"
+            ]
+          },
+          {
+            type: "pastes",
+            items: [
+              {
+                title: "返信",
+                where: "参加受付への返信に使う。",
+                body: "受付を確認しました。ロールを付けました。日程チャンネルのピンを確認してください。"
+              }
+            ]
+          },
+          {
+            type: "bullets",
+            title: "当日の前に",
+            items: [
+              "スタッフは、pack-event/07-day-of-runbook.md と pack-event/08-incident.md を読んでから付ける。",
+              "主催は、common/05-backup-and-handoff.md を読んでから任せる。"
+            ]
+          }
+        ]
+      },
+      {
+        id: "check",
+        title: "公開前チェック",
+        final: true,
+        lead: "ここが終わるまで、招待リンクを配りません。",
+        groups: [
+          {
+            title: "ロール",
+            items: [
+              "並びが、主催、スタッフ、選手、待機、観戦、@everyone の順である（名前は自分のサーバーに合わせてよい）",
+              "どのロールにも「管理者」権限が付いていない",
+              "スタッフに、BAN、チャンネルの管理、ロールの管理が付いていない",
+              "拒否の上書きは @everyone だけである。選手・待機・観戦に赤を付けていない"
+            ]
+          },
+          {
+            title: "チャンネル",
+            items: [
+              "テキスト9個、ボイス3個ある（大会告知、ルール、日程、参加受付、チーム連絡、欠席連絡、試合連絡、結果、スタッフ連絡／待機・試合・観戦ボイス）",
+              "ロールが無いテスト用アカウントには、案内（告知・ルール・日程）と参加受付だけが見える",
+              "そのアカウントは、参加受付以外に書けない",
+              "選手を付けると、チーム連絡・欠席・試合連絡・結果・待機／試合ボイスが使える",
+              "観戦を付けると、結果と観戦ボイスが使える",
+              "スタッフ連絡は、スタッフと主催以外から見えない",
+              "ルール、受付、日程、欠席の型が、それぞれのチャンネルにピン留めされている",
+              "文面の【　】が残っていない"
+            ]
+          },
+          {
+            title: "受付の開閉",
+            items: [
+              "受付を閉じるときは、参加受付の @everyone の送信だけを拒否にする（見るは残す）",
+              "選手や待機には、送信拒否を付けていない",
+              "次の大会で開く手順（@everyone の送信を許可に戻す）をスタッフが知っている"
+            ]
+          },
+          {
+            title: "当日",
+            items: [
+              "pack-event/07-day-of-runbook.md の当日手順をスタッフが読んだ",
+              "pack-event/08-incident.md の初動をスタッフが読んだ"
+            ]
+          }
+        ],
+        links: [
+          { href: "pack-event/09-prepublish-checklist.md", label: "公開前チェックリストの文書" },
+          { href: "pack-event/07-day-of-runbook.md", label: "当日手順" },
+          { href: "pack-event/08-incident.md", label: "トラブル時の初動" }
+        ]
+      }
+    ]
+  }
+};
+
+var copySeq = 0;
+var copyMap = {};
+
+function loadState() {
+  var empty = { v: 1, pack: "", step: { fan: 0, event: 0 }, done: {}, checks: {} };
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return empty;
+    var data = JSON.parse(raw);
+    if (!data || data.v !== 1) return empty;
+    if (!data.step) data.step = { fan: 0, event: 0 };
+    if (!data.done) data.done = {};
+    if (!data.checks) data.checks = {};
+    if (data.pack !== "fan" && data.pack !== "event") data.pack = "";
+    if (typeof data.step.fan !== "number") data.step.fan = 0;
+    if (typeof data.step.event !== "number") data.step.event = 0;
+    return data;
+  } catch (err) {
+    storageOk = false;
+    return empty;
+  }
+}
+
+var state = loadState();
+
+function saveState() {
+  var label = document.getElementById("save-state");
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    storageOk = true;
+    if (label) label.textContent = "チェックはこのブラウザに残します。送信はしません。";
+  } catch (err) {
+    storageOk = false;
+    if (label) label.textContent = "このブラウザではチェックを保存できません。開いたまま進めてください。";
+  }
+}
+
+function el(tag, className, text) {
+  var node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text).then(function () { return true; }, function () {
+      return fallbackCopy(text);
+    });
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+
+function fallbackCopy(text) {
+  var area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.position = "fixed";
+  area.style.top = "0";
+  area.style.left = "-9999px";
+  document.body.appendChild(area);
+  area.select();
+  var ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch (err) {
+    ok = false;
+  }
+  document.body.removeChild(area);
+  return ok;
+}
+
+function markCopied(button, ok) {
+  var previous = button.textContent;
+  button.textContent = ok ? "コピーしました" : "コピーできません";
+  button.classList.toggle("done", ok);
+  window.setTimeout(function () {
+    button.textContent = previous;
+    button.classList.remove("done");
+  }, 1400);
+}
+
+function addCopy(parent, label, text) {
+  copySeq += 1;
+  var id = "c" + copySeq;
+  copyMap[id] = text;
+  var button = el("button", "copy", label);
+  button.type = "button";
+  button.dataset.copyId = id;
+  parent.appendChild(button);
+  return button;
+}
+
+function checkCount(step) {
+  var total = 0;
+  step.groups.forEach(function (group) { total += group.items.length; });
+  return total;
+}
+
+function checkedCount(packId, step) {
+  var n = 0;
+  var total = checkCount(step);
+  var i;
+  for (i = 0; i < total; i += 1) {
+    if (state.checks[packId + ":" + step.id + ":" + i]) n += 1;
+  }
+  return n;
+}
+
+function stepComplete(packId, step) {
+  if (step.final) return checkedCount(packId, step) === checkCount(step);
+  return !!state.done[packId + ":" + step.id];
+}
+
+function renderList(parent, tag, items) {
+  var list = document.createElement(tag);
+  items.forEach(function (item) {
+    list.appendChild(el("li", "", item));
+  });
+  parent.appendChild(list);
+}
+
+function renderSections(parent, sections) {
+  sections.forEach(function (section) {
+    if (section.type === "steps" || section.type === "bullets") {
+      parent.appendChild(el("h3", "", section.title));
+      renderList(parent, section.type === "steps" ? "ol" : "ul", section.items);
+      return;
+    }
+    if (section.type === "callout") {
+      parent.appendChild(el("p", "callout", section.text));
+      return;
+    }
+    if (section.type === "copies") {
+      parent.appendChild(el("h3", "", section.title));
+      var chips = el("div", "chips");
+      section.items.forEach(function (name) {
+        var chip = el("span", "chip");
+        chip.appendChild(el("span", "", name));
+        addCopy(chip, "コピー", name);
+        chips.appendChild(chip);
+      });
+      parent.appendChild(chips);
+      return;
+    }
+    if (section.type === "channels") {
+      section.groups.forEach(function (group) {
+        parent.appendChild(el("h3", "", group.category));
+        var chips = el("div", "chips");
+        group.items.forEach(function (pair) {
+          var chip = el("span", "chip");
+          chip.appendChild(el("span", "", pair[0] + "（" + pair[1] + "）"));
+          addCopy(chip, "名前をコピー", pair[0]);
+          chips.appendChild(chip);
+        });
+        parent.appendChild(chips);
+      });
+      return;
+    }
+    if (section.type === "cards") {
+      parent.appendChild(el("h3", "", section.title));
+      section.items.forEach(function (card) {
+        var box = el("section", "card");
+        box.appendChild(el("h3", "", card.title));
+        renderList(box, "ul", card.lines);
+        parent.appendChild(box);
+      });
+      return;
+    }
+    if (section.type === "pastes") {
+      section.items.forEach(function (paste) {
+        var box = el("section", "card");
+        box.appendChild(el("h3", "", paste.title));
+        box.appendChild(el("p", "", paste.where));
+        var pre = document.createElement("pre");
+        pre.textContent = paste.body;
+        box.appendChild(pre);
+        addCopy(box, "この文面をコピー", paste.body);
+        parent.appendChild(box);
+      });
+    }
+  });
+}
+
+function renderHome() {
+  var app = document.getElementById("app");
+  app.replaceChildren();
+  document.title = "はじめての人へ — Discordサーバーキット";
+  app.appendChild(el("h1", "", "どちらを作りますか"));
+  app.appendChild(el("p", "lead", "選んだ方だけ進めれば大丈夫です。番号の付いた文書は詳細です。先に読まなくても、この画面でサーバーを作れます。"));
+  var choices = el("div", "choices");
+  [
+    ["fan", "ファンコミュニティ", "配信や創作のファンが話すサーバー。ルール、自己紹介、雑談を作ります。"],
+    ["event", "大会・カスタム", "対戦の受付と当日連絡のサーバー。参加受付、試合連絡、待機ボイスを作ります。"]
+  ].forEach(function (row) {
+    var button = el("button", "choice");
+    button.type = "button";
+    button.dataset.pack = row[0];
+    button.appendChild(el("span", "choice-title", row[1]));
+    button.appendChild(el("span", "choice-sub", row[2]));
+    choices.appendChild(button);
+  });
+  app.appendChild(choices);
+  app.appendChild(el("p", "", "文面の【　】は、自分の言葉に変えてから Discord に貼ります。最後のチェックが終わるまで、招待リンクは配りません。"));
+  var reset = el("button", "ghost", "保存したチェックを消す");
+  reset.type = "button";
+  reset.id = "reset";
+  app.appendChild(reset);
+  var links = el("p", "links");
+  links.appendChild(document.createTextNode("詳細（今は開かなくてよい）: "));
+  [
+    ["common/01-server-setup.md", "共通"],
+    ["pack-fan/README.md", "ファン"],
+    ["pack-event/README.md", "大会"]
+  ].forEach(function (item, index) {
+    if (index) links.appendChild(document.createTextNode(" / "));
+    var a = document.createElement("a");
+    a.href = item[0];
+    a.textContent = item[1];
+    links.appendChild(a);
+  });
+  app.appendChild(links);
+}
+
+function renderWizard() {
+  var pack = PACKS[state.pack];
+  var index = state.step[state.pack];
+  if (index < 0 || index >= pack.steps.length) index = 0;
+  state.step[state.pack] = index;
+  var step = pack.steps[index];
+  var app = document.getElementById("app");
+  app.replaceChildren();
+  copyMap = {};
+  copySeq = 0;
+  document.title = "手順" + (index + 1) + " " + step.title + " — はじめての人へ";
+
+  var nav = el("div", "nav");
+  pack.steps.forEach(function (item, itemIndex) {
+    var button = el("button", "", String(itemIndex + 1) + " " + item.title);
+    button.type = "button";
+    button.dataset.gotoStep = String(itemIndex);
+    if (itemIndex === index) button.setAttribute("aria-current", "step");
+    if (stepComplete(pack.id, item)) button.classList.add("is-done");
+    nav.appendChild(button);
+  });
+  app.appendChild(nav);
+
+  var heading = el("h2", "", "手順" + (index + 1) + "　" + step.title);
+  heading.tabIndex = -1;
+  app.appendChild(heading);
+  app.appendChild(el("p", "lead", step.lead));
+
+  if (step.final) {
+    var doneN = checkedCount(pack.id, step);
+    var totalN = checkCount(step);
+    var warn = el("p", doneN === totalN ? "callout ok" : "callout");
+    warn.id = "invite-warn";
+    warn.textContent = doneN === totalN
+      ? "すべてのチェックが付きました。期限と回数を付けた招待だけを配ってください。"
+      : "チェックが終わるまで招待しないでください。（" + doneN + " / " + totalN + "）";
+    app.appendChild(warn);
+    var running = 0;
+    step.groups.forEach(function (group) {
+      app.appendChild(el("h3", "", group.title));
+      group.items.forEach(function (item) {
+        var key = pack.id + ":" + step.id + ":" + running;
+        var label = el("label", "check");
+        var input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = !!state.checks[key];
+        input.dataset.checkKey = key;
+        label.appendChild(input);
+        label.appendChild(el("span", "", item));
+        app.appendChild(label);
+        running += 1;
+      });
+    });
+    var linkRow = el("p", "links");
+    step.links.forEach(function (item) {
+      var a = document.createElement("a");
+      a.href = item.href;
+      a.textContent = item.label;
+      linkRow.appendChild(a);
+    });
+    app.appendChild(linkRow);
+  } else {
+    renderSections(app, step.sections);
+    var doneBox = el("div", "done-box");
+    doneBox.appendChild(el("strong", "", "できた状態"));
+    doneBox.appendChild(el("p", "", step.done));
+    app.appendChild(doneBox);
+    var label = el("label", "check");
+    var input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = !!state.done[pack.id + ":" + step.id];
+    input.dataset.doneKey = pack.id + ":" + step.id;
+    label.appendChild(input);
+    label.appendChild(el("span", "", "この手順は終わった"));
+    app.appendChild(label);
+  }
+
+  var actions = el("div", "actions");
+  var back = el("button", "back", index === 0 ? "用途の選択へ" : "戻る");
+  back.type = "button";
+  back.id = "back";
+  var next = el("button", "next", "");
+  next.type = "button";
+  next.id = "next";
+  if (step.final) {
+    var complete = stepComplete(pack.id, step);
+    next.textContent = complete ? "チェック完了" : "未チェックの項目へ";
+  } else {
+    next.textContent = index === pack.steps.length - 2 ? "公開前チェックへ" : "次へ";
+  }
+  actions.appendChild(back);
+  actions.appendChild(next);
+  app.appendChild(actions);
+  window.scrollTo(0, 0);
+  heading.focus();
+}
+
+function render() {
+  if (!state.pack || !PACKS[state.pack]) renderHome();
+  else renderWizard();
+}
+
+function refreshFinalBits() {
+  var pack = PACKS[state.pack];
+  if (!pack) return;
+  var step = pack.steps[state.step[state.pack]];
+  if (!step || !step.final) return;
+  var doneN = checkedCount(pack.id, step);
+  var totalN = checkCount(step);
+  var warn = document.getElementById("invite-warn");
+  var next = document.getElementById("next");
+  if (warn) {
+    var complete = doneN === totalN;
+    warn.className = complete ? "callout ok" : "callout";
+    warn.textContent = complete
+      ? "すべてのチェックが付きました。期限と回数を付けた招待だけを配ってください。"
+      : "チェックが終わるまで招待しないでください。（" + doneN + " / " + totalN + "）";
+  }
+  if (next) next.textContent = doneN === totalN ? "チェック完了" : "未チェックの項目へ";
+  var buttons = document.querySelectorAll(".nav button");
+  if (buttons[state.step[state.pack]]) {
+    buttons[state.step[state.pack]].classList.toggle("is-done", doneN === totalN);
+  }
+}
+
+document.body.addEventListener("click", function (event) {
+  var button = event.target.closest("button");
+  if (!button) return;
+  if (button.dataset.pack) {
+    state.pack = button.dataset.pack;
+    saveState();
+    render();
+    return;
+  }
+  if (button.id === "reset") {
+    if (!window.confirm("保存したチェックを消しますか。")) return;
+    state.pack = "";
+    state.step = { fan: 0, event: 0 };
+    state.done = {};
+    state.checks = {};
+    saveState();
+    render();
+    return;
+  }
+  if (button.dataset.copyId) {
+    var text = copyMap[button.dataset.copyId];
+    copyText(text).then(function (ok) { markCopied(button, !!ok); });
+    return;
+  }
+  if (button.dataset.gotoStep) {
+    state.step[state.pack] = Number(button.dataset.gotoStep);
+    saveState();
+    render();
+    return;
+  }
+  if (button.id === "back") {
+    if (state.step[state.pack] === 0) state.pack = "";
+    else state.step[state.pack] -= 1;
+    saveState();
+    render();
+    return;
+  }
+  if (button.id === "next") {
+    var pack = PACKS[state.pack];
+    var step = pack.steps[state.step[state.pack]];
+    if (step.final) {
+      var pending = document.querySelector('#app input[type="checkbox"]:not(:checked)');
+      if (pending) {
+        pending.focus();
+        pending.scrollIntoView({ block: "center" });
+      } else {
+        var warn = document.getElementById("invite-warn");
+        if (warn) warn.scrollIntoView({ block: "center" });
+      }
+      return;
+    }
+    state.step[state.pack] += 1;
+    saveState();
+    render();
+  }
+});
+
+document.body.addEventListener("change", function (event) {
+  var input = event.target;
+  if (!input || input.type !== "checkbox") return;
+  if (input.dataset.doneKey) state.done[input.dataset.doneKey] = input.checked;
+  if (input.dataset.checkKey) state.checks[input.dataset.checkKey] = input.checked;
+  saveState();
+  var pack = PACKS[state.pack];
+  if (!pack) return;
+  var index = state.step[state.pack];
+  var buttons = document.querySelectorAll(".nav button");
+  if (buttons[index] && !pack.steps[index].final) {
+    buttons[index].classList.toggle("is-done", !!state.done[pack.id + ":" + pack.steps[index].id]);
+  }
+  refreshFinalBits();
+});
+
+saveState();
+render();
+  </script>
+</body>
+</html>
