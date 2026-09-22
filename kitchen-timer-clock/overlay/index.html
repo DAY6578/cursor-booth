@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>キッチンタイマー時計</title>
+    <style>
+      html,
+      body {
+        background: transparent !important;
+        margin: 0;
+      }
+    </style>
+    <link rel="stylesheet" href="clock.css" />
+  </head>
+  <body>
+    <!-- 見た目の初期値は clock.js 先頭の CONFIG。URL のクエリがあればそちらが優先されます。 -->
+    <main id="clock" class="clock theme-sepaku has-seconds has-date" aria-hidden="true">
+      <div class="appliance">
+        <div class="body">
+          <div class="bell" aria-hidden="true">
+            <span class="bell-cap"></span>
+            <span class="bell-dome"></span>
+          </div>
+          <div class="sheen" aria-hidden="true"></div>
+          <div class="ticks" aria-hidden="true"></div>
+          <div class="ticks ticks-major" aria-hidden="true"></div>
+          <div class="dial-nums" aria-hidden="true">
+            <span class="mark mark-zero" style="--a: 0deg"><span>0</span></span>
+            <span class="mark" style="--a: 30deg"><span>5</span></span>
+            <span class="mark" style="--a: 60deg"><span>10</span></span>
+            <span class="mark" style="--a: 90deg"><span>15</span></span>
+            <span class="mark" style="--a: 120deg"><span>20</span></span>
+            <span class="mark" style="--a: 150deg"><span>25</span></span>
+            <span class="mark" style="--a: 180deg"><span>30</span></span>
+            <span class="mark" style="--a: 210deg"><span>35</span></span>
+            <span class="mark" style="--a: 240deg"><span>40</span></span>
+            <span class="mark" style="--a: 270deg"><span>45</span></span>
+            <span class="mark" style="--a: 300deg"><span>50</span></span>
+            <span class="mark" style="--a: 330deg"><span>55</span></span>
+          </div>
+          <span class="screw screw-l" aria-hidden="true"></span>
+          <span class="screw screw-r" aria-hidden="true"></span>
+          <div class="face">
+            <p class="brand">KITCHEN</p>
+            <p class="period" id="period" hidden></p>
+            <div class="lcd" id="time"></div>
+            <p class="date" id="date" hidden></p>
+          </div>
+          <div class="knob" aria-hidden="true"><span class="knob-mark"></span></div>
+        </div>
+      </div>
+    </main>
+    <p class="sr-only" id="spoken" aria-live="polite"></p>
+    <script src="clock.js"></script>
+  </body>
+</html>
