@@ -34,10 +34,10 @@
 ## Discordサーバー設計・運用キット
 
 - 場所: `products/discord-server-kit/`
-- 中身: 購入者が展開して使う文書。OBSオーバーレイでも、Discordボットでもない
-- 共通手順に加え、ファンコミュニティ用と、大会・カスタム主催用のパックがある
+- 中身: オフラインの手順画面（`はじめての人へ.html`）と、詳細の文書。OBSオーバーレイでも、Discordボットでもない
+- 手順画面で、ファンコミュニティ用か、大会・カスタム主催用かを選ぶ
 - 購入者向け zip 名: `discord-server-kit.zip`
-- zip の中身: `README.md`、`common/`、`pack-fan/`、`pack-event/`
+- zip の中身: `README.md`、`はじめての人へ.html`、`common/`、`pack-fan/`、`pack-event/`
 - `販売ページ/` は販売者用。zip に入れない
 - 組み立て: `scripts/build-discord-server-kit-zip.py`
 - 販売メモ上の価格の目安は 800円から1500円。公開価格はオーナー承認が必要

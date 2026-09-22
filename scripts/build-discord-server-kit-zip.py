@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """購入者向け zip を releases/discord-server-kit.zip に作る。
 
-販売ページは入れない。中身は README.md、common/、pack-fan/、pack-event/ だけ。
+販売ページは入れない。中身は README.md、はじめての人へ.html、common/、pack-fan/、pack-event/ だけ。
 """
 import sys
 import zipfile
@@ -13,6 +13,7 @@ OUT = ROOT / "releases" / "discord-server-kit.zip"
 EXCLUDE_TOP = {"販売ページ"}
 REQUIRED = (
     "README.md",
+    "はじめての人へ.html",
     "common/01-server-setup.md",
     "common/02-roles-and-permissions.md",
     "common/03-moderation-first-response.md",
@@ -64,8 +65,18 @@ def main() -> int:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(OUT, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for path, name in files:
-            # ファイル名は ASCII。日本語のファイル名を足した場合は zipfile が UTF-8 フラグを付ける。
+            # 日本語名は閉じたあとのヘッダで UTF-8 フラグ（bit 11）が付く。
             zf.write(path, arcname=name)
+    with zipfile.ZipFile(OUT) as zf:
+        info = zf.getinfo("はじめての人へ.html")
+        if not info.flag_bits & 0x800:
+            print("utf-8 flag missing on はじめての人へ.html", file=sys.stderr)
+            OUT.unlink(missing_ok=True)
+            return 1
+        if any(name.startswith("販売ページ/") for name in zf.namelist()):
+            print("sales notes must not be in the zip", file=sys.stderr)
+            OUT.unlink(missing_ok=True)
+            return 1
     print(OUT.relative_to(ROOT).as_posix())
     print(str(len(files)) + " files")
     return 0
