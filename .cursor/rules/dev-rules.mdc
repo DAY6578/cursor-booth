@@ -1,0 +1,21 @@
+---
+description: Cursorはcursor-readyのIssueだけを実装する
+alwaysApply: true
+---
+
+# 開発担当の制約
+
+このリポジトリで Cursor は開発担当だけを行う。企画、店長、サポート、QA は `bots/` の Grok 用プロンプトであり、ここでは引き受けない。
+
+実装してよいのは、GitHub Issue に `cursor-ready` が付いているものだけ。
+
+- ラベルがない依頼、会話中の思いつき、Growth の提案は実装しない。Issue 番号を確認し、無ければ止める。
+- Issue に書いていない機能を足さない。
+- 既存購入者の設定と、保存済み時計の互換を維持する。
+- 外部 CDN、Node、サーバー依存を新しく入れない。
+- 購入者向け zip に `販売ページ/` を入れない。
+- 仕様の WHAT は Issue に従い、HOW は Cursor が決める。
+
+完了時は Issue に、変更内容、変更ファイル、テスト結果、既知の問題、QA手順を残す。`cursor-ready` を外し、`qa-ready` を付ける。公開はしない。
+
+詳細は `DEV_RULES.md`。

@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>地獄のデジタル時計</title>
+<style>
+@font-face {
+  font-family: "Clock Orbitron";
+  src: url("overlay/fonts/orbitron-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Clock Outfit";
+  src: url("overlay/fonts/outfit-300.woff2") format("woff2");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Clock Nunito";
+  src: url("overlay/fonts/nunito-800.woff2") format("woff2");
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Clock JetBrains";
+  src: url("overlay/fonts/jetbrains-mono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+:root {
+  --ink: #120a09;
+  --panel: #1c1210;
+  --paper: #f6efe8;
+  --mute: #b5a197;
+  --line: rgba(246, 239, 232, 0.14);
+  --persimmon: #e23b22;
+  --persimmon-deep: #b42a16;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, #3a1612, var(--ink) 42%);
+  color: var(--paper);
+  font-family: "Yu Gothic UI", Meiryo, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: 28px;
+  align-items: start;
+  padding: 28px 24px 120px;
+}
+
+.preview-col { min-width: 0; }
+
+h1 {
+  margin: 0;
+  font-family: "Yu Mincho", "YuMincho", serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.lead {
+  margin: 10px 0 0;
+  max-width: 40em;
+  color: var(--mute);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 28px 0 10px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.note {
+  margin: 8px 0 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.stage {
+  position: relative;
+  min-height: 200px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  aspect-ratio: 960 / 320;
+}
+
+.checker {
+  position: absolute;
+  inset: 0;
+  background-color: #2a2422;
+  background-image:
+    linear-gradient(45deg, #1a1614 25%, transparent 25%),
+    linear-gradient(-45deg, #1a1614 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1a1614 75%),
+    linear-gradient(-45deg, transparent 75%, #1a1614 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+}
+
+iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(18, 8, 7, 0.72);
+  padding: 8px 18px 18px;
+}
+
+.block { padding: 16px 0; border-top: 1px solid var(--line); }
+.panel .block:first-child { border-top: 0; }
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  text-align: left;
+}
+
+.card[aria-pressed="true"] {
+  border-color: var(--persimmon);
+  box-shadow: inset 0 0 0 1px var(--persimmon);
+}
+
+.sample {
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.sample-blaze {
+  font-family: "Clock Orbitron", sans-serif;
+  font-weight: 700;
+  color: #ff5a1f;
+  text-shadow: 0 0 8px rgba(255, 90, 31, 0.8);
+}
+.sample-abyss {
+  font-family: "Clock Outfit", sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  color: #f6f1ec;
+}
+.sample-guren {
+  font-family: "Clock Nunito", sans-serif;
+  font-weight: 800;
+  color: #ff4d6d;
+  text-shadow: 0 0 8px rgba(255, 77, 109, 0.65);
+}
+.sample-brand {
+  font-family: "Clock JetBrains", monospace;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: #f7f2ec;
+  text-shadow: 0.06em 0.06em 0 #ff2a2a;
+}
+
+.card-name { font-size: 14px; }
+.card-note { font-size: 12px; color: var(--mute); }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.row p {
+  margin: 4px 0 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 28em;
+}
+
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+#picker {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.seg { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.seg button, .toggle {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  cursor: pointer;
+}
+
+.seg button[aria-pressed="true"], .toggle[aria-pressed="true"] {
+  border-color: var(--persimmon);
+  background: var(--persimmon);
+  color: #fff;
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.swatch[aria-pressed="true"] { border-color: var(--paper); }
+
+.swatch-theme {
+  background: conic-gradient(#ff5a1f, #ffb25a, #ff4d6d, #e7d2c8, #ff2a2a, #ff5a1f);
+}
+
+.offset { display: none; margin-top: 8px; }
+.offset.is-open { display: block; }
+.offset label { display: block; margin-bottom: 6px; font-size: 14px; }
+
+.offset input {
+  width: 160px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 16px;
+}
+
+.error { color: #ff8d7a; font-size: 13px; }
+
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  background: rgba(12, 6, 5, 0.94);
+}
+
+.save-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.save {
+  flex: 0 0 auto;
+  height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--persimmon);
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.save:hover { background: var(--persimmon-deep); }
+
+.obs {
+  margin: 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.arrow {
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin: 0 0.35em;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: 0.05em;
+}
+
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--persimmon);
+  outline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .wrap { grid-template-columns: 1fr; padding: 20px 16px 120px; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  h1 { font-size: 28px; }
+  .row { align-items: flex-start; flex-direction: column; }
+  .seg { justify-content: flex-start; }
+  .save-inner { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="preview-col">
+    <header>
+      <h1>地獄のデジタル時計</h1>
+      <p class="lead">見た目を決めて、OBS用のファイルを保存します。コードは開きません。</p>
+    </header>
+    <div class="preview-head">
+      <h2>プレビュー</h2>
+    </div>
+    <div class="stage">
+      <div class="checker"></div>
+      <iframe id="preview" title="時計のプレビュー"></iframe>
+    </div>
+    <p class="note">市松模様は透けているかの確認です。保存した時計には入りません。</p>
+  </div>
+
+  <section class="panel">
+    <div class="block">
+      <h2>テーマ</h2>
+      <div class="cards" role="radiogroup" aria-label="テーマ">
+        <button type="button" class="card" data-theme="blaze" role="radio">
+          <span class="sample sample-blaze">08:41</span>
+          <span class="card-name">業火</span>
+          <span class="card-note">熱い字</span>
+        </button>
+        <button type="button" class="card" data-theme="abyss" role="radio">
+          <span class="sample sample-abyss">08:41</span>
+          <span class="card-name">冥府</span>
+          <span class="card-note">細い字</span>
+        </button>
+        <button type="button" class="card" data-theme="guren" role="radio">
+          <span class="sample sample-guren">08:41</span>
+          <span class="card-name">紅蓮</span>
+          <span class="card-note">やわらかい字</span>
+        </button>
+        <button type="button" class="card" data-theme="brand" role="radio">
+          <span class="sample sample-brand">08:41</span>
+          <span class="card-name">烙印</span>
+          <span class="card-note">等幅</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="block">
+      <h2>色</h2>
+      <div class="colors">
+        <input id="picker" type="color" aria-label="アクセントの色" value="#ff5a1f" />
+        <button type="button" class="swatch swatch-theme" data-accent="" aria-label="テーマの色"></button>
+        <button type="button" class="swatch" data-accent="#ff5a1f" style="background:#ff5a1f" aria-label="業火"></button>
+        <button type="button" class="swatch" data-accent="#ffb25a" style="background:#ffb25a" aria-label="金"></button>
+        <button type="button" class="swatch" data-accent="#ff2a2a" style="background:#ff2a2a" aria-label="紅"></button>
+        <button type="button" class="swatch" data-accent="#e7d2c8" style="background:#e7d2c8" aria-label="骨白"></button>
+        <button type="button" class="swatch" data-accent="#c084fc" style="background:#c084fc" aria-label="紫炎"></button>
+      </div>
+      <p class="note">色を選ばなければ、テーマごとの色になります。</p>
+    </div>
+
+    <div class="row">
+      <div><h2>時刻の形</h2></div>
+      <div class="seg" role="radiogroup" aria-label="時刻の形">
+        <button type="button" data-hours="24" role="radio">24時間</button>
+        <button type="button" data-hours="12" role="radio">12時間</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div><h2>秒を表示</h2></div>
+      <button type="button" class="toggle" id="seconds" aria-pressed="true">オン</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <h2>日付を表示</h2>
+        <p>年月日と曜日です。</p>
+      </div>
+      <button type="button" class="toggle" id="date" aria-pressed="true">オン</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <h2>ふわっと動かす</h2>
+        <p>時計全体がゆっくり漂います。最初はオフです。パソコンの視差効果を減らす設定がオンのときは、動きは止まります。</p>
+      </div>
+      <button type="button" class="toggle" id="motion" aria-pressed="false">オフ</button>
+    </div>
+
+    <div class="block">
+      <h2>時刻の基準</h2>
+      <div class="seg" role="radiogroup" aria-label="時刻の基準">
+        <button type="button" data-basis="local" role="radio">このパソコンの時刻</button>
+        <button type="button" data-basis="japan" role="radio">日本時間</button>
+        <button type="button" data-basis="other" role="radio">その他</button>
+      </div>
+      <div class="offset" id="offset-box">
+        <label for="offset">協定世界時からの時差（時間）</label>
+        <input id="offset" inputmode="decimal" autocomplete="off" value="9" />
+        <p class="error" id="offset-error" hidden>時差は -12 から 14 の数字にしてください。</p>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="save-bar">
+  <div class="save-inner">
+    <button type="button" class="save" id="save">OBS用の時計をダウンロード</button>
+    <p class="obs">ダウンロードしたファイルを、OBS のブラウザソース<span class="arrow" aria-hidden="true"></span>ローカルファイルで開いてください。幅 960、高さ 320 くらいです。</p>
+  </div>
+</div>
+<script>
+const CLOCK_CSS = __EMBED_CSS__;
+const CLOCK_JS = __EMBED_JS__;
+(function () {
+  var THEMES = ["blaze", "abyss", "guren", "brand"];
+  var THEME_ACCENTS = {
+    blaze: "#ff5a1f",
+    abyss: "#e7d2c8",
+    guren: "#ff4d6d",
+    brand: "#ff2a2a",
+  };
+  var STORAGE_KEY = "hell-clock-design";
+
+  var state = {
+    theme: "blaze",
+    hours: 24,
+    seconds: true,
+    date: true,
+    motion: false,
+    accent: "",
+    basis: "local",
+    offsetText: "9",
+  };
+  var lastPreviewKey = "";
+  var previewTimer = 0;
+
+  function $(id) { return document.getElementById(id); }
+
+  function readStore() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (THEMES.indexOf(saved.theme) !== -1) state.theme = saved.theme;
+      if (saved.hours === 12 || saved.hours === 24) state.hours = saved.hours;
+      if (typeof saved.seconds === "boolean") state.seconds = saved.seconds;
+      if (typeof saved.date === "boolean") state.date = saved.date;
+      if (typeof saved.motion === "boolean") state.motion = saved.motion;
+      if (typeof saved.accent === "string" && (/^#[0-9a-fA-F]{6}$/.test(saved.accent) || saved.accent === "")) {
+        state.accent = saved.accent.toLowerCase();
+      }
+      if (saved.basis === "local" || saved.basis === "japan" || saved.basis === "other") state.basis = saved.basis;
+      if (typeof saved.offsetText === "string") state.offsetText = saved.offsetText;
+    } catch (error) {}
+  }
+
+  function writeStore() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) {}
+  }
+
+  function parseOffset(text) {
+    var trimmed = String(text || "").trim().replace(/−/g, "-");
+    if (!/^-?\d+(\.\d+)?$/.test(trimmed)) return null;
+    var value = Number(trimmed);
+    if (!isFinite(value) || value < -12 || value > 14) return null;
+    return Math.round(value * 100) / 100;
+  }
+
+  function toConfig() {
+    var offset = null;
+    if (state.basis === "japan") offset = 9;
+    if (state.basis === "other") {
+      var parsed = parseOffset(state.offsetText);
+      if (parsed === null) return null;
+      offset = parsed;
+    }
+    return {
+      theme: state.theme,
+      hours: state.hours,
+      seconds: state.seconds,
+      date: state.date,
+      motion: state.motion,
+      accent: state.accent,
+      offset: offset,
+    };
+  }
+
+  function buildClockHtml(config) {
+    var js = CLOCK_JS.replace("__CONFIG__", JSON.stringify(config)).replace(/<\//g, "<\\/");
+    return (
+      "<!doctype html><html lang=\"ja\"><head><meta charset=\"utf-8\">" +
+      "<title>地獄のデジタル時計</title><style>" +
+      "html,body{background:transparent!important;margin:0}" +
+      CLOCK_CSS +
+      "</style></head><body>" +
+      "<main id=\"clock\" class=\"clock theme-blaze\" aria-hidden=\"true\">" +
+      "<canvas id=\"embers\" aria-hidden=\"true\"></canvas>" +
+      "<div class=\"clock-float\" id=\"float\">" +
+      "<p class=\"period\" id=\"period\" hidden></p>" +
+      "<div class=\"time\" id=\"time\"></div>" +
+      "<div class=\"tick\" aria-hidden=\"true\"></div>" +
+      "<p class=\"date\" id=\"date\" hidden></p>" +
+      "</div></main>" +
+      "<p class=\"sr-only\" id=\"spoken\" aria-live=\"polite\"></p>" +
+      "<script>" + js + "<\/script></body></html>"
+    );
+  }
+
+  function paint() {
+    var cards = document.querySelectorAll("[data-theme]");
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].setAttribute("aria-pressed", cards[i].getAttribute("data-theme") === state.theme ? "true" : "false");
+    }
+    var hours = document.querySelectorAll("[data-hours]");
+    for (var h = 0; h < hours.length; h++) {
+      hours[h].setAttribute("aria-pressed", Number(hours[h].getAttribute("data-hours")) === state.hours ? "true" : "false");
+    }
+    var basis = document.querySelectorAll("[data-basis]");
+    for (var b = 0; b < basis.length; b++) {
+      basis[b].setAttribute("aria-pressed", basis[b].getAttribute("data-basis") === state.basis ? "true" : "false");
+    }
+    $("seconds").setAttribute("aria-pressed", state.seconds ? "true" : "false");
+    $("seconds").textContent = state.seconds ? "オン" : "オフ";
+    $("date").setAttribute("aria-pressed", state.date ? "true" : "false");
+    $("date").textContent = state.date ? "オン" : "オフ";
+    $("motion").setAttribute("aria-pressed", state.motion ? "true" : "false");
+    $("motion").textContent = state.motion ? "オン" : "オフ";
+    $("picker").value = state.accent || THEME_ACCENTS[state.theme];
+    var swatches = document.querySelectorAll("[data-accent]");
+    for (var s = 0; s < swatches.length; s++) {
+      swatches[s].setAttribute("aria-pressed", swatches[s].getAttribute("data-accent").toLowerCase() === state.accent ? "true" : "false");
+    }
+    $("offset-box").className = state.basis === "other" ? "offset is-open" : "offset";
+    if (document.activeElement !== $("offset")) $("offset").value = state.offsetText;
+    var invalid = state.basis === "other" && parseOffset(state.offsetText) === null;
+    $("offset-error").hidden = !invalid;
+    $("offset").setAttribute("aria-invalid", invalid ? "true" : "false");
+  }
+
+  function schedulePreview() {
+    window.clearTimeout(previewTimer);
+    previewTimer = window.setTimeout(renderPreview, 80);
+  }
+
+  function renderPreview() {
+    var config = toConfig();
+    if (!config) return;
+    var key = JSON.stringify(config);
+    if (key === lastPreviewKey) return;
+    lastPreviewKey = key;
+    $("preview").srcdoc = buildClockHtml(config);
+  }
+
+  function download() {
+    var config = toConfig();
+    if (!config) {
+      $("offset").focus();
+      return;
+    }
+    var html = buildClockHtml(config);
+    var blob = new Blob([html], { type: "text/html" });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "地獄のデジタル時計.html";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    var button = $("save");
+    button.textContent = "保存しました";
+    window.setTimeout(function () { button.textContent = "OBS用の時計をダウンロード"; }, 1800);
+  }
+
+  readStore();
+  paint();
+  renderPreview();
+
+  document.querySelectorAll("[data-theme]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.theme = button.getAttribute("data-theme");
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  document.querySelectorAll("[data-hours]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.hours = Number(button.getAttribute("data-hours"));
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  document.querySelectorAll("[data-basis]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.basis = button.getAttribute("data-basis");
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  document.querySelectorAll("[data-accent]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      state.accent = button.getAttribute("data-accent").toLowerCase();
+      writeStore();
+      paint();
+      schedulePreview();
+    });
+  });
+  $("picker").addEventListener("input", function (event) {
+    state.accent = event.target.value.toLowerCase();
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("seconds").addEventListener("click", function () {
+    state.seconds = !state.seconds;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("date").addEventListener("click", function () {
+    state.date = !state.date;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("motion").addEventListener("click", function () {
+    state.motion = !state.motion;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("offset").addEventListener("input", function (event) {
+    state.offsetText = event.target.value;
+    writeStore();
+    paint();
+    schedulePreview();
+  });
+  $("save").addEventListener("click", download);
+})();
+</script>
+</body>
+</html>

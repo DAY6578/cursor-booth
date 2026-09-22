@@ -1,0 +1,91 @@
+name: Bug
+description: 不具合を、Cursorが実装できる仕様にする
+title: "[BUG] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        `cursor-ready` は付けない。問題、実装内容、完了条件、テスト、既存への影響が揃ってから、店長だけが付ける。
+  - type: dropdown
+    id: type
+    attributes:
+      label: TYPE
+      options:
+        - BUG
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: PRIORITY
+      options:
+        - P0
+        - P1
+        - P2
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: BACKGROUND
+      description: なぜ必要なのか
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: CURRENT BEHAVIOR
+      description: 現在どうなっているか
+    validations:
+      required: true
+  - type: textarea
+    id: desired
+    attributes:
+      label: DESIRED BEHAVIOR
+      description: どうなってほしいか
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: USER VALUE
+      description: 購入者にどのような価値があるか
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: REQUIREMENTS
+      description: 必要な仕様。HOWは書かない
+    validations:
+      required: true
+  - type: textarea
+    id: nonrequirements
+    attributes:
+      label: NON-REQUIREMENTS
+      description: 今回やらないこと。無ければ「なし」
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: ACCEPTANCE CRITERIA
+      description: 完了と判断できる客観的条件
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: TEST CASES
+      description: QA Botが確認する内容
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: COMPATIBILITY
+      description: 既存利用者への影響。無ければ「なし」
+    validations:
+      required: true

@@ -1,0 +1,52 @@
+name: Support
+description: 問い合わせと再現メモ。実装指示にはしない
+title: "[SUPPORT] "
+labels:
+  - support
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグを見つけても修正しない。このIssueは店長への報告である。`cursor-ready` は付けない。
+  - type: dropdown
+    id: product
+    attributes:
+      label: 商品
+      options:
+        - 地獄のデジタル時計
+        - 動くデジタル時計
+        - 不明
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: 購入者が言っていること
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 再現手順
+      description: まだ再現していない場合は、足りない情報を書く
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待した動き
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動き
+    validations:
+      required: true
+  - type: textarea
+    id: draft
+    attributes:
+      label: 返信下書き
+      description: 送信はしない
+    validations:
+      required: true

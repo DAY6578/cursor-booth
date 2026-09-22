@@ -1,0 +1,44 @@
+name: Growth
+description: 店長への提案。開発指示にはしない
+title: "[GROWTH] "
+labels:
+  - growth
+body:
+  - type: markdown
+    attributes:
+      value: |
+        アイデアを見つけても開発させない。`cursor-ready` は付けない。仕様化は店長が行う。
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 種別
+      options:
+        - 新商品
+        - 既存改善
+        - 価格・ページ
+    validations:
+      required: true
+  - type: textarea
+    id: observation
+    attributes:
+      label: 観察
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 根拠
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 店長への提案
+    validations:
+      required: true
+  - type: textarea
+    id: missing
+    attributes:
+      label: 仕様化に足りない情報
+    validations:
+      required: true
