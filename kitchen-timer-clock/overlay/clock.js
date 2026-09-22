@@ -5,7 +5,7 @@
    URL にクエリがあるときは、クエリがここより優先されます。
 
    theme    sepaku | hakka | shurei | kurumi
-            雪白 / 薄荷 / 朱鈴 / 胡桃
+            白 / 緑 / 赤 / 木
    hours    12 | 24
    seconds  true で秒を表示 / false で隠す
    date     true で日付と曜日 / false で隠す
