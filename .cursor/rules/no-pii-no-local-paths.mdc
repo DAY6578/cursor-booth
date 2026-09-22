@@ -1,0 +1,14 @@
+---
+description: Never put personal info or local PC paths in repo docs, code comments, README, Issues, PRs, or buyer zip contents
+alwaysApply: true
+---
+
+# No PII / No local paths
+
+Owner rule (2026-09-22):
+
+- Do **not** write local PC absolute paths (example: `D:\...`, `C:\Users\...`) into README, docs, comments, Issues, PRs, commit messages, or product files.
+- Do **not** write personal information (real name, email, phone, address, Discord/LINE IDs, private URLs that identify the owner).
+- Buyer zip / BOOTH package must contain **only** the product folder. Never include the whole repository, README with internal ops notes, or `.git`.
+- Prefer relative paths from the repo root. If a machine path is needed for the owner only, keep it out of git-tracked files.
+- Before finishing a product or docs change, search for `D:\`, `C:\Users\`, `@gmail`, phone-like numbers, and remove them.
