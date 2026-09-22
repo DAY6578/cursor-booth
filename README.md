@@ -42,11 +42,12 @@ Grokに渡すのは、各Botファイルのシステムプロンプトだけ。�
 ## フォルダ
 
 ```
-products/          既存商品の置き場。中身の移動はしていない
+products/          商品の置き場
 docs/              仕様、FAQ、変更履歴
 research/          Growthの調査メモ
 releases/          QA PASS後のRelease Candidate
 bots/              Grok 3体のプロンプト
+scripts/           購入者zipの組み立て
 ```
 
 既存の時計は、次の場所のままである。
@@ -55,6 +56,8 @@ bots/              Grok 3体のプロンプト
 - `ugoku-digital-clock/` … 動くデジタル時計
 
 `products/obs-clock/README.md` が、この2つの索引である。
+
+Discordサーバーの設計・運用キットは `products/discord-server-kit/` にある。購入者向け zip は `scripts/build-discord-server-kit-zip.py` が `releases/discord-server-kit.zip` に作る。`販売ページ/` は入れない。公開はしない。
 
 ## ラベル
 
